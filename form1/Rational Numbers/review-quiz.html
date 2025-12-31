@@ -93,6 +93,8 @@
   </div>
 
   <button type="button" onclick="checkAnswers()">Check Answers</button>
+  <button type="button" onclick="resetQuiz()">Reset</button>
+
 
 </form>
 
@@ -168,6 +170,28 @@
       MathJax.typesetPromise();
     }
   }
+
+  function resetQuiz() {
+  // Clear selected answers
+  document.getElementById("quiz").reset();
+
+  // Clear feedback messages
+  for (let i = 1; i <= 5; i++) {
+    const f = document.getElementById(`f${i}`);
+    f.textContent = "";
+    f.className = "feedback";
+  }
+
+  // Hide score box
+  const scoreBox = document.getElementById("scoreBox");
+  const scoreText = document.getElementById("scoreText");
+  scoreBox.style.display = "none";
+  scoreText.textContent = "";
+
+  // Scroll back to top of quiz (nice UX)
+  document.querySelector("h1").scrollIntoView({ behavior: "smooth" });
+}
+
 </script>
 
 </body>
