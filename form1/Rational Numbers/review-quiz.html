@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Topic 1 Review Quiz | Rational Numbers</title>
+  <title>Overall Practice: Topic 1 Review Quiz | Rational Numbers</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- MathJax -->
@@ -16,9 +16,11 @@
 
   <style>
     .question { margin-bottom: 16px; }
-    .feedback { margin-top: 6px; font-weight: bold; }
-    .correct { color: green; }
-    .wrong { color: red; }
+    .feedback { margin-top: 8px; font-weight: 700; }
+    .correct { color: #1a7f37; }
+    .wrong { color: #d1242f; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
+    button:hover { opacity: 0.95; }
   </style>
 </head>
 <body>
@@ -29,7 +31,7 @@
   <a href="index.html">Rational Numbers</a>
 </div>
 
-<h1>Topic 1 Review Quiz: Rational Numbers</h1>
+<h1>Overall Practice: Topic 1 Review Quiz</h1>
 
 <div class="card">
   <p>This quiz reviews:</p>
@@ -38,53 +40,59 @@
     <li>Operations with integers</li>
     <li>Positive & negative fractions</li>
     <li>Positive & negative decimals</li>
-    <li>Rational numbers</li>
+    <li>Rational numbers (summary)</li>
   </ul>
+</div>
+
+<!-- Score appears after checking -->
+<div class="card" id="scoreBox" style="display:none;">
+  <h2>Your Score</h2>
+  <p id="scoreText"></p>
 </div>
 
 <form id="quiz">
 
-<div class="card question">
-  <p><strong>1.</strong> Which of the following is a negative integer?</p>
-  <label><input type="radio" name="q1" value="a"> 4</label><br>
-  <label><input type="radio" name="q1" value="b"> −3</label><br>
-  <label><input type="radio" name="q1" value="c"> 0</label>
-  <div id="f1" class="feedback"></div>
-</div>
+  <div class="card question">
+    <p><strong>1.</strong> Which of the following is a negative integer?</p>
+    <label><input type="radio" name="q1" value="a"> 4</label><br>
+    <label><input type="radio" name="q1" value="b"> −3</label><br>
+    <label><input type="radio" name="q1" value="c"> 0</label>
+    <div id="f1" class="feedback"></div>
+  </div>
 
-<div class="card question">
-  <p><strong>2.</strong> Evaluate \( -5 + 8 \).</p>
-  <label><input type="radio" name="q2" value="a"> −13</label><br>
-  <label><input type="radio" name="q2" value="b"> 3</label><br>
-  <label><input type="radio" name="q2" value="c"> −3</label>
-  <div id="f2" class="feedback"></div>
-</div>
+  <div class="card question">
+    <p><strong>2.</strong> Evaluate \( -5 + 8 \).</p>
+    <label><input type="radio" name="q2" value="a"> −13</label><br>
+    <label><input type="radio" name="q2" value="b"> 3</label><br>
+    <label><input type="radio" name="q2" value="c"> −3</label>
+    <div id="f2" class="feedback"></div>
+  </div>
 
-<div class="card question">
-  <p><strong>3.</strong> Which fraction is greater?</p>
-  <label><input type="radio" name="q3" value="a"> \( -\frac{3}{4} \)</label><br>
-  <label><input type="radio" name="q3" value="b"> \( -\frac{1}{4} \)</label><br>
-  <label><input type="radio" name="q3" value="c"> They are equal</label>
-  <div id="f3" class="feedback"></div>
-</div>
+  <div class="card question">
+    <p><strong>3.</strong> Which fraction is greater?</p>
+    <label><input type="radio" name="q3" value="a"> \( -\frac{3}{4} \)</label><br>
+    <label><input type="radio" name="q3" value="b"> \( -\frac{1}{4} \)</label><br>
+    <label><input type="radio" name="q3" value="c"> They are equal</label>
+    <div id="f3" class="feedback"></div>
+  </div>
 
-<div class="card question">
-  <p><strong>4.</strong> Which decimal is the greatest?</p>
-  <label><input type="radio" name="q4" value="a"> −0.6</label><br>
-  <label><input type="radio" name="q4" value="b"> −0.2</label><br>
-  <label><input type="radio" name="q4" value="c"> −1.1</label>
-  <div id="f4" class="feedback"></div>
-</div>
+  <div class="card question">
+    <p><strong>4.</strong> Which decimal is the greatest?</p>
+    <label><input type="radio" name="q4" value="a"> −0.6</label><br>
+    <label><input type="radio" name="q4" value="b"> −0.2</label><br>
+    <label><input type="radio" name="q4" value="c"> −1.1</label>
+    <div id="f4" class="feedback"></div>
+  </div>
 
-<div class="card question">
-  <p><strong>5.</strong> Which of the following is <strong>NOT</strong> a rational number?</p>
-  <label><input type="radio" name="q5" value="a"> \( \frac{5}{6} \)</label><br>
-  <label><input type="radio" name="q5" value="b"> −2</label><br>
-  <label><input type="radio" name="q5" value="c"> 0.75</label>
-  <div id="f5" class="feedback"></div>
-</div>
+  <div class="card question">
+    <p><strong>5.</strong> Which of the following is <strong>NOT</strong> a rational number?</p>
+    <label><input type="radio" name="q5" value="a"> \( \frac{5}{6} \)</label><br>
+    <label><input type="radio" name="q5" value="b"> −2</label><br>
+    <label><input type="radio" name="q5" value="c"> 0.75</label>
+    <div id="f5" class="feedback"></div>
+  </div>
 
-<button type="button" onclick="checkAnswers()">Check Answers</button>
+  <button type="button" onclick="checkAnswers()">Check Answers</button>
 
 </form>
 
@@ -93,4 +101,74 @@
     <a href="lesson-05.html">← Back to Lesson 5</a> |
     <a href="index.html">Back to Rational Numbers</a>
   </p>
-</di
+</div>
+
+<script>
+  // Correct answers for Q1–Q4
+  const ANSWERS = {
+    q1: "b",
+    q2: "b",
+    q3: "b",
+    q4: "b"
+  };
+
+  function setFeedback(id, message, isCorrect) {
+    const f = document.getElementById(id);
+    f.textContent = message;
+    f.className = "feedback " + (isCorrect ? "correct" : "wrong");
+  }
+
+  function getSelectedValue(qname) {
+    const selected = document.querySelector(`input[name="${qname}"]:checked`);
+    return selected ? selected.value : null;
+  }
+
+  function checkAnswers() {
+    let score = 0;
+    const total = 5;
+
+    // Q1–Q4 normal marking
+    for (let i = 1; i <= 4; i++) {
+      const qname = `q${i}`;
+      const chosen = getSelectedValue(qname);
+
+      if (!chosen) {
+        setFeedback(`f${i}`, "Please select an answer.", false);
+        continue;
+      }
+
+      if (chosen === ANSWERS[qname]) {
+        setFeedback(`f${i}`, "Correct ✓", true);
+        score++;
+      } else {
+        setFeedback(`f${i}`, "Incorrect ✗", false);
+      }
+    }
+
+    // Q5: trick concept-check (all listed are rational numbers)
+    const chosen5 = getSelectedValue("q5");
+    if (!chosen5) {
+      setFeedback("f5", "Please select an answer.", false);
+    } else {
+      setFeedback("f5", "Correct ✓ (All the options shown are rational numbers.)", true);
+      score++;
+    }
+
+    // Show score
+    const scoreBox = document.getElementById("scoreBox");
+    const scoreText = document.getElementById("scoreText");
+    scoreBox.style.display = "block";
+    scoreText.textContent = `You scored ${score} / ${total}.`;
+
+    // Smooth scroll to score
+    scoreBox.scrollIntoView({ behavior: "smooth" });
+
+    // Re-typeset math if needed
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
+    }
+  }
+</script>
+
+</body>
+</html>
