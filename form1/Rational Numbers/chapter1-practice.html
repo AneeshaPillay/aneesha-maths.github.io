@@ -1,1 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chapter 1 Practice Generator</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 24px; line-height: 1.4; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 14px 0; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+    input[type="number"]{ padding: 8px; border-radius: 10px; border: 1px solid #ccc; width: 140px; }
+    .muted { color: #666; font-size: 0.95rem; }
+    .ok { color: #0a7a2f; font-weight: 600; }
+    .bad { color: #b00020; font-weight: 600; }
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; background:#f3f3f3; font-size:.9rem; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 1 Practice (Auto-Generated)</h1>
+  <p class="muted">Click <b>Generate Set</b> to get a new (unique) practice set. You can also share the Set Code with students.</p>
+
+  <div class="row">
+    <button id="btnGenerate">Generate Set</button>
+    <button id="btnShowSolutions" disabled>Show Solutions</button>
+    <button id="btnCheck" disabled>Check Answers</button>
+    <span class="pill">Set Code: <span id="setCode">—</span></span>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label class="muted">Or enter a Set Code:</label>
+      <input id="seedInput" type="number" placeholder="e.g. 12345" />
+      <button id="btnLoad">Load Set</button>
+    </div>
+    <p class="muted">Same Set Code → same questions (useful for homework / retests).</p>
+  </div>
+
+  <div id="questions"></div>
+
+  <script>
+    // --------- Seeded random (so each set can be reproduced) ----------
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      }
+    }
+    function randInt(rng, min, max) {
+      return Math.floor(rng() * (max - min + 1)) + min;
+    }
+
+    // --------- Question templates (EDIT THESE for your Chapter 1) ----------
+    // Example: number skills (you can replace with your Chapter 1 topics)
+    function buildQuestions(seed) {
+      const rng = mulberry32(seed);
+
+      // Generate different values per student/set
+      const a = randInt(rng, 12, 99);
+      const b = randInt(rng, 12, 99);
+      const c = randInt(rng, 2, 9);
+
+      const p = randInt(rng, 5, 20);
+      const q = randInt(rng, 5, 20);
+      const r = randInt(rng, 2, 9);
+
+      // You can add more templates and randomise which ones appear.
+      return [
+        {
+          id: "q1",
+          type: "number",
+          prompt: `1) Calculate: ${a} + ${b}`,
+          answer: a + b,
+          solution: `Solution: ${a} + ${b} = ${a + b}`
+        },
+        {
+          id: "q2",
+          type: "number",
+          prompt: `2) Calculate: ${a} × ${c}`,
+          answer: a * c,
+          solution: `Solution: ${a} × ${c} = ${a * c}`
+        },
+        {
+          id: "q3",
+          type: "number",
+          prompt: `3) Calculate: (${p} + ${q}) ÷ ${r}`,
+          // Keep it clean: produce integer-friendly division by forcing multiples
+          // We'll adjust p+q to be divisible by r:
+          // (We'll compute adjustedSum and override prompt & answer.)
+          _meta: { p, q, r }
+        }
+      ].map(qObj => {
+        if (qObj.id === "q3") {
+          const { p, q, r } = qObj._meta;
+          const sum = p + q;
+          const adjustedSum = sum + ((r - (sum % r)) % r); // next divisible
+          qObj.prompt = `3) Calculate: ${adjustedSum} ÷ ${r}`;
+          qObj.answer = adjustedSum / r;
+          qObj.solution = `Solution: ${adjustedSum} ÷ ${r} = ${qObj.answer}`;
+          delete qObj._meta;
+        }
+        return qObj;
+      });
+    }
+
+    // --------- Render ----------
+    const elQuestions = document.getElementById("questions");
+    const elSetCode = document.getElementById("setCode");
+    const btnGenerate = document.getElementById("btnGenerate");
+    const btnLoad = document.getElementById("btnLoad");
+    const btnShowSolutions = document.getElementById("btnShowSolutions");
+    const btnCheck = document.getElementById("btnCheck");
+    const seedInput = document.getElementById("seedInput");
+
+    let currentSeed = null;
+    let currentQuestions = [];
+    let solutionsVisible = false;
+
+    function render() {
+      elSetCode.textContent = currentSeed ?? "—";
+      elQuestions.innerHTML = "";
+
+      currentQuestions.forEach((q, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="row" style="justify-content:space-between;">
+            <strong>${q.prompt}</strong>
+            <span class="pill">Q${idx+1}</span>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <label>Your answer:</label>
+            <input type="number" id="${q.id}_ans" step="any" />
+            <span id="${q.id}_mark" class="muted"></span>
+          </div>
+
+          <div id="${q.id}_sol" class="${solutionsVisible ? "" : "hidden"}" style="margin-top:10px;">
+            <div class="muted"><b>Answer:</b> ${q.answer}</div>
+            <div class="muted">${q.solution}</div>
+          </div>
+        `;
+        elQuestions.appendChild(card);
+      });
+    }
+
+    function generateNewSet() {
+      // Use timestamp-based seed so each click is different
+      currentSeed = Math.floor(Date.now() % 1000000000);
+      currentQuestions = buildQuestions(currentSeed);
+      solutionsVisible = false;
+
+      btnShowSolutions.disabled = false;
+      btnCheck.disabled = false;
+
+      render();
+    }
+
+    function loadSetFromSeed(seed) {
+      currentSeed = seed;
+      currentQuestions = buildQuestions(currentSeed);
+      solutionsVisible = false;
+
+      btnShowSolutions.disabled = false;
+      btnCheck.disabled = false;
+
+      render();
+    }
+
+    function toggleSolutions() {
+      solutionsVisible = !solutionsVisible;
+      btnShowSolutions.textContent = solutionsVisible ? "Hide Solutions" : "Show Solutions";
+      render();
+    }
+
+    function checkAnswers() {
+      currentQuestions.forEach(q => {
+        const input = document.getElementById(`${q.id}_ans`);
+        const mark = document.getElementById(`${q.id}_mark`);
+        const userVal = input.value === "" ? null : Number(input.value);
+
+        if (userVal === null || Number.isNaN(userVal)) {
+          mark.textContent = "Not answered";
+          mark.className = "muted";
+          return;
+        }
+
+        // numeric tolerance (good for decimals)
+        const correct = Math.abs(userVal - q.answer) < 1e-9;
+
+        if (correct) {
+          mark.textContent = "✔ Correct";
+          mark.className = "ok";
+        } else {
+          mark.textContent = `✘ Incorrect`;
+          mark.className = "bad";
+        }
+      });
+    }
+
+    btnGenerate.addEventListener("click", generateNewSet);
+
+    btnLoad.addEventListener("click", () => {
+      const seed = Number(seedInput.value);
+      if (!seed || Number.isNaN(seed)) {
+        alert("Please enter a valid Set Code number.");
+        return;
+      }
+      loadSetFromSeed(seed);
+    });
+
+    btnShowSolutions.addEventListener("click", () => {
+      if (currentSeed === null) return;
+      toggleSolutions();
+    });
+
+    btnCheck.addEventListener("click", () => {
+      if (currentSeed === null) return;
+      checkAnswers();
+    });
+  </script>
+
+</body>
+</html>
 
