@@ -3,227 +3,445 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chapter 1 Practice Generator</title>
+  <title>Chapter 1 | Worksheet Generator</title>
   <style>
-    body { font-family: system-ui, Arial; margin: 24px; line-height: 1.4; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 14px 0; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
-    input[type="number"]{ padding: 8px; border-radius: 10px; border: 1px solid #ccc; width: 140px; }
-    .muted { color: #666; font-size: 0.95rem; }
-    .ok { color: #0a7a2f; font-weight: 600; }
-    .bad { color: #b00020; font-weight: 600; }
-    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; background:#f3f3f3; font-size:.9rem; }
+    :root { --border:#e5e7eb; --muted:#6b7280; }
+    body { font-family: system-ui, Arial; margin: 24px; line-height: 1.45; }
+    h1 { margin: 0 0 6px; }
+    .muted { color: var(--muted); }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 14px 0 18px; }
+    .card { border:1px solid var(--border); border-radius:14px; padding:14px; margin:12px 0; }
+    button, select, input {
+      padding:10px 12px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font: inherit;
+    }
+    button { cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#f3f4f6; font-size:.9rem; }
+    .qhead { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .ans { width: 180px; }
+    .ok { color:#0a7a2f; font-weight:600; }
+    .bad { color:#b00020; font-weight:600; }
     .hidden { display:none; }
+
+    @media print {
+      .no-print { display:none !important; }
+      body { margin: 10mm; }
+      .card { break-inside: avoid; }
+      input { border: 1px solid #999; }
+    }
   </style>
 </head>
 <body>
 
-  <h1>Chapter 1 Practice (Auto-Generated)</h1>
-  <p class="muted">Click <b>Generate Set</b> to get a new (unique) practice set. You can also share the Set Code with students.</p>
+  <div class="no-print">
+    <h1>Chapter 1 Worksheet Generator</h1>
+    <div class="muted">Choose a level → Generate 20 questions → Check / Solutions → Download PDF.</div>
 
-  <div class="row">
-    <button id="btnGenerate">Generate Set</button>
-    <button id="btnShowSolutions" disabled>Show Solutions</button>
-    <button id="btnCheck" disabled>Check Answers</button>
-    <span class="pill">Set Code: <span id="setCode">—</span></span>
+    <div class="toolbar">
+      <label class="pill">Level:
+        <select id="level">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+
+      <button id="btnGenerate">Generate 20 Questions</button>
+
+      <label class="pill">Set Code (optional):
+        <input id="seedInput" type="number" placeholder="e.g. student ID" style="width:220px;">
+      </label>
+
+      <button id="btnLoad">Load with Code</button>
+
+      <span class="pill">Current Set: <span id="setCode">—</span></span>
+
+      <button id="btnCheck" disabled>Check Answers</button>
+      <button id="btnSolutions" disabled>Show Solutions</button>
+      <button id="btnPDF" disabled>Download PDF</button>
+    </div>
+
+    <div class="card muted">
+      <b>Tip:</b> If you want each student to get a consistent set, tell them to enter their <b>student ID</b> as the Set Code and click <b>Load with Code</b>.
+    </div>
   </div>
 
-  <div class="card">
-    <div class="row">
-      <label class="muted">Or enter a Set Code:</label>
-      <input id="seedInput" type="number" placeholder="e.g. 12345" />
-      <button id="btnLoad">Load Set</button>
-    </div>
-    <p class="muted">Same Set Code → same questions (useful for homework / retests).</p>
+  <div id="printHeader" class="hidden">
+    <h2 style="margin:0;">Chapter 1 Worksheet</h2>
+    <div class="muted" id="printMeta"></div>
+    <hr style="border:none;border-top:1px solid #ddd;margin:10px 0 14px;">
   </div>
 
   <div id="questions"></div>
 
-  <script>
-    // --------- Seeded random (so each set can be reproduced) ----------
-    function mulberry32(a) {
-      return function() {
-        let t = a += 0x6D2B79F5;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      }
+<script>
+/* ---------------- Seeded RNG ---------------- */
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+function randInt(rng, min, max) { return Math.floor(rng() * (max - min + 1)) + min; }
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function simplifyFrac(n,d){ const g=gcd(n,d); d = d<0 ? -d : d; n = (d<0)?-n:n; return [n/g, d/g]; }
+function fracToStr(n,d){ return d===1 ? `${n}` : `${n}/${d}`; }
+function fmtSigned(n){ return n<0 ? `(${n})` : `${n}`; }
+function roundTo(x, dp=2){ const p=Math.pow(10,dp); return Math.round(x*p)/p; }
+
+/* ---------------- Build 20 questions with subtopic mix ---------------- */
+const MIX = {
+  // 20 questions per set. You can tweak these counts.
+  easy:   { integers:4, intOps:4, fractions:4, decimals:4, rational:2, word:2 },
+  medium: { integers:3, intOps:5, fractions:4, decimals:4, rational:2, word:2 },
+  hard:   { integers:2, intOps:5, fractions:5, decimals:4, rational:2, word:2 },
+};
+
+/* ---------------- Question generators by subtopic & level ---------------- */
+/* Each returns: { topic, prompt, answer (number or string), solution } */
+
+function Q_integers(rng, level){
+  if(level==="easy"){
+    const a=randInt(rng,-20,20), b=randInt(rng,-20,20);
+    const prompt = `Integers: Arrange in ascending order: ${a}, ${b}, 0`;
+    const arr=[a,b,0].sort((x,y)=>x-y);
+    return { topic:"Integers", prompt, answer: arr.join(", "), solution:`Ascending order: ${arr.join(", ")}` };
+  }
+  if(level==="medium"){
+    const a=randInt(rng,-50,50), b=randInt(rng,-50,50);
+    const prompt = `Integers: Which is greater? ${a} or ${b}`;
+    const ans = a===b ? "Equal" : (a>b ? `${a}` : `${b}`);
+    return { topic:"Integers", prompt, answer: ans, solution: a===b ? `${a} = ${b} (Equal)` : `${Math.max(a,b)} is greater.` };
+  }
+  // hard
+  const a=randInt(rng,-200,200), b=randInt(rng,-200,200), c=randInt(rng,-200,200), d=randInt(rng,-200,200);
+  const prompt = `Integers: Find the value of |${a}| + |${b}| − |${c}| + |${d}|`;
+  const ans = Math.abs(a)+Math.abs(b)-Math.abs(c)+Math.abs(d);
+  return { topic:"Integers", prompt, answer: ans, solution:`|${a}|+|${b}|−|${c}|+|${d}| = ${Math.abs(a)}+${Math.abs(b)}−${Math.abs(c)}+${Math.abs(d)} = ${ans}` };
+}
+
+function Q_intOps(rng, level){
+  if(level==="easy"){
+    const a=randInt(rng,-20,20), b=randInt(rng,-20,20);
+    const op = pick(rng, ["+","-"]);
+    const prompt = `Integer Operations: Compute ${fmtSigned(a)} ${op} ${fmtSigned(b)}`;
+    const ans = op==="+" ? a+b : a-b;
+    return { topic:"Integer Operations", prompt, answer: ans, solution:`${a} ${op} ${b} = ${ans}` };
+  }
+  if(level==="medium"){
+    const a=randInt(rng,-30,30), b=randInt(rng,-12,12), c=randInt(rng,-12,12);
+    const prompt = `Integer Operations: Compute ${fmtSigned(a)} + ${fmtSigned(b)} × ${fmtSigned(c)}`;
+    const ans = a + b*c;
+    return { topic:"Integer Operations", prompt, answer: ans, solution:`Multiply first: ${b}×${c}=${b*c}. Then ${a}+${b*c}=${ans}` };
+  }
+  // hard
+  const a=randInt(rng,-50,50), b=randInt(rng,2,12), c=randInt(rng,-60,60);
+  const prompt = `Integer Operations: Compute (${fmtSigned(a)} ÷ ${b}) × ${fmtSigned(c)} (assume division is exact)`;
+  // make division exact:
+  const adjA = a - (a % b);
+  const ans = (adjA / b) * c;
+  return {
+    topic:"Integer Operations",
+    prompt:`Integer Operations: Compute (${fmtSigned(adjA)} ÷ ${b}) × ${fmtSigned(c)}`,
+    answer: ans,
+    solution:`${adjA} ÷ ${b} = ${adjA/b}. Then (${adjA/b})×${c} = ${ans}`
+  };
+}
+
+function Q_fractions(rng, level){
+  if(level==="easy"){
+    const d=pick(rng,[2,3,4,5,6,8,10,12]);
+    const n1=randInt(rng,-(d-1), d-1);
+    const n2=randInt(rng,-(d-1), d-1);
+    const prompt = `Fractions: Compute ${fracToStr(n1,d)} + ${fracToStr(n2,d)}`;
+    const num = n1+n2, den=d;
+    const [sn,sd]=simplifyFrac(num,den);
+    return { topic:"Fractions", prompt, answer: fracToStr(sn,sd), solution:`Same denominator: (${n1}+${n2})/${d} = ${num}/${d} = ${fracToStr(sn,sd)}` };
+  }
+  if(level==="medium"){
+    const d1=pick(rng,[2,3,4,5,6,8,10,12]);
+    const d2=pick(rng,[2,3,4,5,6,8,10,12]);
+    const n1=randInt(rng,-(d1-1), d1-1);
+    const n2=randInt(rng,-(d2-1), d2-1);
+    const op = pick(rng, ["+","-"]);
+    const prompt = `Fractions: Compute ${fracToStr(n1,d1)} ${op} ${fracToStr(n2,d2)} (simplify)`;
+    const num = op==="+" ? (n1*d2 + n2*d1) : (n1*d2 - n2*d1);
+    const den = d1*d2;
+    const [sn,sd]=simplifyFrac(num,den);
+    return { topic:"Fractions", prompt, answer: fracToStr(sn,sd), solution:`Common denom ${den}: ${num}/${den} = ${fracToStr(sn,sd)}` };
+  }
+  // hard (mixed ops)
+  const d1=pick(rng,[3,4,5,6,8,10,12]);
+  const d2=pick(rng,[3,4,5,6,8,10,12]);
+  const d3=pick(rng,[3,4,5,6,8,10,12]);
+  const a=randInt(rng,-(d1-1), d1-1);
+  const b=randInt(rng,-(d2-1), d2-1);
+  const c=randInt(rng,-(d3-1), d3-1);
+  const prompt = `Fractions: Compute ${fracToStr(a,d1)} × ${fracToStr(b,d2)} + ${fracToStr(c,d3)} (simplify)`;
+  // a/d1 * b/d2 = (ab)/(d1d2)
+  const num1 = a*b, den1 = d1*d2;
+  // add c/d3 => num = num1*d3 + c*den1
+  const num = num1*d3 + c*den1;
+  const den = den1*d3;
+  const [sn,sd]=simplifyFrac(num,den);
+  return {
+    topic:"Fractions",
+    prompt,
+    answer: fracToStr(sn,sd),
+    solution:`First multiply: ${a}/${d1}×${b}/${d2} = ${num1}/${den1}. Then add ${c}/${d3}: (${num1}×${d3} + ${c}×${den1})/${den1*d3} = ${num}/${den} = ${fracToStr(sn,sd)}`
+  };
+}
+
+function Q_decimals(rng, level){
+  if(level==="easy"){
+    const a = roundTo(randInt(rng,-99,99)/10, 1);
+    const b = roundTo(randInt(rng,-99,99)/10, 1);
+    const op = pick(rng, ["+","-"]);
+    const ans = op==="+" ? roundTo(a+b,1) : roundTo(a-b,1);
+    return { topic:"Decimals", prompt:`Decimals: Compute ${a} ${op} ${b}`, answer: ans, solution:`${a} ${op} ${b} = ${ans}` };
+  }
+  if(level==="medium"){
+    const a = roundTo(randInt(rng,-999,999)/100, 2);
+    const b = roundTo(randInt(rng,-999,999)/100, 2);
+    const c = randInt(rng,-9,9);
+    const ans = roundTo(a + b*c, 2);
+    return {
+      topic:"Decimals",
+      prompt:`Decimals: Compute ${a} + (${b} × ${c})`,
+      answer: ans,
+      solution:`Multiply first: ${b}×${c}=${roundTo(b*c,2)}. Then add: ${a}+${roundTo(b*c,2)}=${ans}`
+    };
+  }
+  // hard
+  const a = roundTo(randInt(rng,-999,999)/100, 2);
+  const b = roundTo(randInt(rng,10,90)/10, 1);
+  const c = roundTo(randInt(rng,-999,999)/100, 2);
+  const ans = roundTo((a / b) - c, 2);
+  return {
+    topic:"Decimals",
+    prompt:`Decimals: Compute (${a} ÷ ${b}) − ${c} (round to 2 d.p.)`,
+    answer: ans,
+    solution:`${a} ÷ ${b} = ${roundTo(a/b,2)}. Then subtract: ${roundTo(a/b,2)} − ${c} = ${ans}`
+  };
+}
+
+function Q_rational(rng, level){
+  // rational numbers include integers, fractions, terminating/repeating decimals
+  if(level==="easy"){
+    const nums = [
+      `${randInt(rng,-9,9)}`,
+      `${randInt(rng,-9,9)}/${pick(rng,[2,3,4,5,6,8,10])}`,
+      `${roundTo(randInt(rng,-99,99)/10,1)}`
+    ];
+    const prompt = `Rational Numbers: Which of these are rational? ${nums.join(", ")}`;
+    return { topic:"Rational Numbers", prompt, answer:"All of them", solution:"Integers, fractions, and terminating decimals are all rational numbers." };
+  }
+  if(level==="medium"){
+    const a=randInt(rng,-9,9), b=pick(rng,[2,3,4,5,6,8,10,12]);
+    const dec = roundTo(randInt(rng,-999,999)/100,2);
+    const prompt = `Rational Numbers: Write ${a}/${b} as a decimal (round to 3 d.p.)`;
+    const ans = roundTo(a/b,3);
+    return { topic:"Rational Numbers", prompt, answer: ans, solution:`${a}/${b} = ${a/b}. Rounded to 3 d.p.: ${ans}` };
+  }
+  // hard: compare rationals
+  const d1=pick(rng,[3,4,5,6,8,10,12]), d2=pick(rng,[3,4,5,6,8,10,12]);
+  const n1=randInt(rng,-(d1-1), d1-1), n2=randInt(rng,-(d2-1), d2-1);
+  const a = n1/d1, b = n2/d2;
+  const prompt = `Rational Numbers: Which is greater? ${fracToStr(n1,d1)} or ${fracToStr(n2,d2)}`;
+  const ans = a===b ? "Equal" : (a>b ? fracToStr(n1,d1) : fracToStr(n2,d2));
+  return { topic:"Rational Numbers", prompt, answer: ans, solution: a===b ? "They are equal." : `${Math.max(a,b)} is greater, so the greater number is ${ans}.` };
+}
+
+function Q_word(rng, level){
+  if(level==="easy"){
+    const start = randInt(rng,-10,10);
+    const change = randInt(rng,-15,15);
+    const prompt = `Word Problem: The temperature is ${start}°C. It changes by ${change}°C. What is the new temperature?`;
+    const ans = start + change;
+    return { topic:"Word Problems", prompt, answer: ans, solution:`New temperature = ${start} + (${change}) = ${ans}°C` };
+  }
+  if(level==="medium"){
+    const a=randInt(rng,-20,20), b=randInt(rng,-20,20), c=randInt(rng,2,6);
+    const prompt = `Word Problem: A lift goes up ${a} floors, then ${b} floors (down if negative). This pattern repeats ${c} times. Total change in floors?`;
+    const per = a+b;
+    const ans = per*c;
+    return { topic:"Word Problems", prompt, answer: ans, solution:`One cycle: ${a}+${b}=${per}. Repeated ${c} times: ${per}×${c}=${ans}` };
+  }
+  // hard: fraction/decimal context
+  const total = randInt(rng,60,180);
+  const den = pick(rng,[3,4,5,6,8,10,12]);
+  const num = pick(rng,[1,2,3,4,5]);
+  const fracNum = Math.min(num, den-1);
+  const spent = roundTo(total * (fracNum/den), 2);
+  const extra = roundTo(randInt(rng,-50,50)/10, 1);
+  const ans = roundTo(total - spent + extra, 2);
+  const prompt = `Word Problem: You have RM${total}. You spend ${fracNum}/${den} of it, then you receive RM${extra}. How much money do you have now?`;
+  return {
+    topic:"Word Problems",
+    prompt,
+    answer: ans,
+    solution:`Spend = ${fracNum}/${den} × ${total} = RM${spent}. Remaining = RM${roundTo(total-spent,2)}. After receiving RM${extra}: RM${roundTo(total-spent,2)} + RM${extra} = RM${ans}`
+  };
+}
+
+/* Build set */
+function buildSet(seed, level){
+  const rng = mulberry32(seed);
+  const mix = MIX[level];
+  const q = [];
+
+  const pushN = (fn, n) => { for(let i=0;i<n;i++) q.push(fn(rng, level)); };
+
+  pushN(Q_integers, mix.integers);
+  pushN(Q_intOps, mix.intOps);
+  pushN(Q_fractions, mix.fractions);
+  pushN(Q_decimals, mix.decimals);
+  pushN(Q_rational, mix.rational);
+  pushN(Q_word, mix.word);
+
+  // Shuffle and take exactly 20
+  for (let i = q.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [q[i], q[j]] = [q[j], q[i]];
+  }
+  return q.slice(0, 20).map((qq, idx)=>({ ...qq, id:`q${idx+1}` }));
+}
+
+/* ---------------- UI Logic ---------------- */
+const elQuestions = document.getElementById("questions");
+const elSetCode = document.getElementById("setCode");
+const seedInput = document.getElementById("seedInput");
+const levelSel = document.getElementById("level");
+
+const btnGenerate = document.getElementById("btnGenerate");
+const btnLoad = document.getElementById("btnLoad");
+const btnCheck = document.getElementById("btnCheck");
+const btnSolutions = document.getElementById("btnSolutions");
+const btnPDF = document.getElementById("btnPDF");
+
+const printHeader = document.getElementById("printHeader");
+const printMeta = document.getElementById("printMeta");
+
+let currentSeed = null;
+let currentLevel = "easy";
+let questions = [];
+let solutionsVisible = false;
+
+function enableActions(){
+  btnCheck.disabled = false;
+  btnSolutions.disabled = false;
+  btnPDF.disabled = false;
+}
+
+function render(){
+  elSetCode.textContent = currentSeed ?? "—";
+  elQuestions.innerHTML = "";
+
+  // print header
+  if(currentSeed !== null){
+    printHeader.classList.remove("hidden");
+    printMeta.textContent = `Level: ${currentLevel.toUpperCase()} | Set Code: ${currentSeed} | Total Questions: 20`;
+  } else {
+    printHeader.classList.add("hidden");
+  }
+
+  questions.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const isNumeric = (typeof q.answer === "number");
+
+    card.innerHTML = `
+      <div class="qhead">
+        <div><b>${idx+1})</b> ${q.prompt}</div>
+        <span class="pill">${q.topic}</span>
+      </div>
+
+      <div class="row">
+        <label>Your answer:</label>
+        <input class="ans" id="${q.id}_ans" ${isNumeric ? 'type="number" step="any"' : 'type="text"'} />
+        <span id="${q.id}_mark" class="muted"></span>
+      </div>
+
+      <div id="${q.id}_sol" class="${solutionsVisible ? "" : "hidden"}" style="margin-top:10px;">
+        <div class="muted"><b>Answer:</b> ${q.answer}</div>
+        <div class="muted"><b>Working:</b> ${q.solution}</div>
+      </div>
+    `;
+    elQuestions.appendChild(card);
+  });
+
+  btnSolutions.textContent = solutionsVisible ? "Hide Solutions" : "Show Solutions";
+}
+
+function generateNew(){
+  currentLevel = levelSel.value;
+  currentSeed = Math.floor(Date.now() % 1000000000);
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function loadWithSeed(){
+  currentLevel = levelSel.value;
+  const seed = Number(seedInput.value);
+  if(!seed || Number.isNaN(seed)) { alert("Please enter a valid Set Code number."); return; }
+  currentSeed = seed;
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function checkAnswers(){
+  const tol = 1e-9;
+  questions.forEach(q => {
+    const input = document.getElementById(`${q.id}_ans`);
+    const mark = document.getElementById(`${q.id}_mark`);
+
+    const userRaw = input.value.trim();
+    if(userRaw === ""){
+      mark.textContent = "Not answered";
+      mark.className = "muted";
+      return;
     }
-    function randInt(rng, min, max) {
-      return Math.floor(rng() * (max - min + 1)) + min;
+
+    if(typeof q.answer === "number"){
+      const userVal = Number(userRaw);
+      const correct = !Number.isNaN(userVal) && Math.abs(userVal - q.answer) < tol;
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
+    } else {
+      // simple string match (case-insensitive)
+      const correct = userRaw.toLowerCase() === String(q.answer).toLowerCase();
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
     }
+  });
+}
 
-    // --------- Question templates (EDIT THESE for your Chapter 1) ----------
-    // Example: number skills (you can replace with your Chapter 1 topics)
-    function buildQuestions(seed) {
-      const rng = mulberry32(seed);
+function toggleSolutions(){
+  solutionsVisible = !solutionsVisible;
+  render();
+}
 
-      // Generate different values per student/set
-      const a = randInt(rng, 12, 99);
-      const b = randInt(rng, 12, 99);
-      const c = randInt(rng, 2, 9);
+function downloadPDF(){
+  // browser print dialog -> Save as PDF
+  window.print();
+}
 
-      const p = randInt(rng, 5, 20);
-      const q = randInt(rng, 5, 20);
-      const r = randInt(rng, 2, 9);
-
-      // You can add more templates and randomise which ones appear.
-      return [
-        {
-          id: "q1",
-          type: "number",
-          prompt: `1) Calculate: ${a} + ${b}`,
-          answer: a + b,
-          solution: `Solution: ${a} + ${b} = ${a + b}`
-        },
-        {
-          id: "q2",
-          type: "number",
-          prompt: `2) Calculate: ${a} × ${c}`,
-          answer: a * c,
-          solution: `Solution: ${a} × ${c} = ${a * c}`
-        },
-        {
-          id: "q3",
-          type: "number",
-          prompt: `3) Calculate: (${p} + ${q}) ÷ ${r}`,
-          // Keep it clean: produce integer-friendly division by forcing multiples
-          // We'll adjust p+q to be divisible by r:
-          // (We'll compute adjustedSum and override prompt & answer.)
-          _meta: { p, q, r }
-        }
-      ].map(qObj => {
-        if (qObj.id === "q3") {
-          const { p, q, r } = qObj._meta;
-          const sum = p + q;
-          const adjustedSum = sum + ((r - (sum % r)) % r); // next divisible
-          qObj.prompt = `3) Calculate: ${adjustedSum} ÷ ${r}`;
-          qObj.answer = adjustedSum / r;
-          qObj.solution = `Solution: ${adjustedSum} ÷ ${r} = ${qObj.answer}`;
-          delete qObj._meta;
-        }
-        return qObj;
-      });
-    }
-
-    // --------- Render ----------
-    const elQuestions = document.getElementById("questions");
-    const elSetCode = document.getElementById("setCode");
-    const btnGenerate = document.getElementById("btnGenerate");
-    const btnLoad = document.getElementById("btnLoad");
-    const btnShowSolutions = document.getElementById("btnShowSolutions");
-    const btnCheck = document.getElementById("btnCheck");
-    const seedInput = document.getElementById("seedInput");
-
-    let currentSeed = null;
-    let currentQuestions = [];
-    let solutionsVisible = false;
-
-    function render() {
-      elSetCode.textContent = currentSeed ?? "—";
-      elQuestions.innerHTML = "";
-
-      currentQuestions.forEach((q, idx) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div class="row" style="justify-content:space-between;">
-            <strong>${q.prompt}</strong>
-            <span class="pill">Q${idx+1}</span>
-          </div>
-
-          <div class="row" style="margin-top:10px;">
-            <label>Your answer:</label>
-            <input type="number" id="${q.id}_ans" step="any" />
-            <span id="${q.id}_mark" class="muted"></span>
-          </div>
-
-          <div id="${q.id}_sol" class="${solutionsVisible ? "" : "hidden"}" style="margin-top:10px;">
-            <div class="muted"><b>Answer:</b> ${q.answer}</div>
-            <div class="muted">${q.solution}</div>
-          </div>
-        `;
-        elQuestions.appendChild(card);
-      });
-    }
-
-    function generateNewSet() {
-      // Use timestamp-based seed so each click is different
-      currentSeed = Math.floor(Date.now() % 1000000000);
-      currentQuestions = buildQuestions(currentSeed);
-      solutionsVisible = false;
-
-      btnShowSolutions.disabled = false;
-      btnCheck.disabled = false;
-
-      render();
-    }
-
-    function loadSetFromSeed(seed) {
-      currentSeed = seed;
-      currentQuestions = buildQuestions(currentSeed);
-      solutionsVisible = false;
-
-      btnShowSolutions.disabled = false;
-      btnCheck.disabled = false;
-
-      render();
-    }
-
-    function toggleSolutions() {
-      solutionsVisible = !solutionsVisible;
-      btnShowSolutions.textContent = solutionsVisible ? "Hide Solutions" : "Show Solutions";
-      render();
-    }
-
-    function checkAnswers() {
-      currentQuestions.forEach(q => {
-        const input = document.getElementById(`${q.id}_ans`);
-        const mark = document.getElementById(`${q.id}_mark`);
-        const userVal = input.value === "" ? null : Number(input.value);
-
-        if (userVal === null || Number.isNaN(userVal)) {
-          mark.textContent = "Not answered";
-          mark.className = "muted";
-          return;
-        }
-
-        // numeric tolerance (good for decimals)
-        const correct = Math.abs(userVal - q.answer) < 1e-9;
-
-        if (correct) {
-          mark.textContent = "✔ Correct";
-          mark.className = "ok";
-        } else {
-          mark.textContent = `✘ Incorrect`;
-          mark.className = "bad";
-        }
-      });
-    }
-
-    btnGenerate.addEventListener("click", generateNewSet);
-
-    btnLoad.addEventListener("click", () => {
-      const seed = Number(seedInput.value);
-      if (!seed || Number.isNaN(seed)) {
-        alert("Please enter a valid Set Code number.");
-        return;
-      }
-      loadSetFromSeed(seed);
-    });
-
-    btnShowSolutions.addEventListener("click", () => {
-      if (currentSeed === null) return;
-      toggleSolutions();
-    });
-
-    btnCheck.addEventListener("click", () => {
-      if (currentSeed === null) return;
-      checkAnswers();
-    });
-  </script>
+/* events */
+btnGenerate.addEventListener("click", generateNew);
+btnLoad.addEventListener("click", loadWithSeed);
+btnCheck.addEventListener("click", checkAnswers);
+btnSolutions.addEventListener("click", toggleSolutions);
+btnPDF.addEventListener("click", downloadPDF);
+</script>
 
 </body>
 </html>
-
