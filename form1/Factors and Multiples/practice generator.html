@@ -1,1 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chapter 2 | Worksheet Generator (Factors, HCF, Multiples, LCM)</title>
+  <style>
+    :root { --border:#e5e7eb; --muted:#6b7280; }
+    body { font-family: system-ui, Arial; margin: 24px; line-height: 1.45; }
+    h1 { margin: 0 0 6px; }
+    .muted { color: var(--muted); }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 14px 0 18px; }
+    .card { border:1px solid var(--border); border-radius:14px; padding:14px; margin:12px 0; }
+    button, select, input {
+      padding:10px 12px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font: inherit;
+    }
+    button { cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#f3f4f6; font-size:.9rem; }
+    .qhead { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .ans { width: 220px; }
+    .ok { color:#0a7a2f; font-weight:600; }
+    .bad { color:#b00020; font-weight:600; }
+    .hidden { display:none; }
+    pre { background:#f9fafb; border:1px solid #eee; padding:10px; border-radius:12px; overflow:auto; }
+
+    @media print {
+      .no-print { display:none !important; }
+      body { margin: 10mm; }
+      .card { break-inside: avoid; }
+      input { border: 1px solid #999; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    <h1>Chapter 2 Worksheet Generator</h1>
+    <div class="muted">Factors • Prime Factors • HCF • Multiples • Common Multiples • LCM</div>
+
+    <div class="toolbar">
+      <label class="pill">Level:
+        <select id="level">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+
+      <button id="btnGenerate">Generate 20 Questions</button>
+
+      <label class="pill">Set Code (optional):
+        <input id="seedInput" type="number" placeholder="e.g. student ID" style="width:220px;">
+      </label>
+
+      <button id="btnLoad">Load with Code</button>
+
+      <span class="pill">Current Set: <span id="setCode">—</span></span>
+
+      <button id="btnCheck" disabled>Check Answers</button>
+      <button id="btnSolutions" disabled>Show Solutions</button>
+      <button id="btnPDF" disabled>Download PDF</button>
+    </div>
+
+    <div class="card muted">
+      <b>Tip:</b> For consistent sets, tell students to enter their <b>student ID</b> as the Set Code and click <b>Load with Code</b>.
+    </div>
+  </div>
+
+  <div id="printHeader" class="hidden">
+    <h2 style="margin:0;">Chapter 2 Worksheet</h2>
+    <div class="muted" id="printMeta"></div>
+    <hr style="border:none;border-top:1px solid #ddd;margin:10px 0 14px;">
+  </div>
+
+  <div id="questions"></div>
+
+<script>
+/* ---------------- Seeded RNG ---------------- */
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+function randInt(rng, min, max) { return Math.floor(rng() * (max - min + 1)) + min; }
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+
+/* ---------------- Number helpers ---------------- */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function lcm2(a,b){ return Math.abs(a*b)/gcd(a,b); }
+function lcm3(a,b,c){ return lcm2(lcm2(a,b),c); }
+
+function isPrime(n){
+  n = Math.abs(n);
+  if(n < 2) return false;
+  if(n % 2 === 0) return n === 2;
+  for(let p=3; p*p<=n; p+=2){
+    if(n % p === 0) return false;
+  }
+  return true;
+}
+
+function factorsList(n){
+  n = Math.abs(n);
+  const f = [];
+  for(let i=1;i*i<=n;i++){
+    if(n % i === 0){
+      f.push(i);
+      if(i*i !== n) f.push(n/i);
+    }
+  }
+  f.sort((a,b)=>a-b);
+  return f;
+}
+
+function primeFactorisation(n){
+  n = Math.abs(n);
+  const parts = [];
+  let x = n;
+  for(let p=2; p*p<=x; p += (p===2?1:2)){
+    let count = 0;
+    while(x % p === 0){ x/=p; count++; }
+    if(count>0) parts.push([p,count]);
+  }
+  if(x>1) parts.push([x,1]);
+  return parts; // array of [prime, power]
+}
+
+function pfToStr(parts){
+  if(parts.length === 0) return "1";
+  return parts.map(([p,k]) => k===1 ? `${p}` : `${p}^${k}`).join(" × ");
+}
+
+function ladderHCF(a,b){
+  // returns {divs:[], steps:[...], end:[..]}
+  let x=a, y=b;
+  const divs=[];
+  const lines=[];
+  let d=2;
+  while(d*d<=Math.max(x,y)){
+    let used=false;
+    while(x % d === 0 && y % d === 0){
+      divs.push(d);
+      x/=d; y/=d;
+      lines.push(`${d} | ${x*d}   ${y*d}`);
+      used=true;
+    }
+    d = (d===2)?3:(d+2);
+    if(!used && d>Math.max(x,y)) break;
+  }
+  // Print final line (no divider) + ending pair
+  lines.push(`  | ${x}   ${y}`);
+  return {divs, lines, end:[x,y]};
+}
+
+function ladderLCM(nums){
+  // nums length 2 or 3
+  const arr = nums.slice();
+  const divs=[];
+  const lines=[];
+  let current = arr.slice();
+
+  // find primes to divide until all 1
+  function allOnes(a){ return a.every(v=>v===1); }
+
+  let p=2;
+  while(!allOnes(current)){
+    // find smallest prime that divides at least one
+    let found = false;
+
+    // try from 2 upward (2 then odd)
+    p=2;
+    while(true){
+      if(isPrime(p)){
+        const can = current.some(v=>v%p===0);
+        if(can){
+          found = true;
+          break;
+        }
+      }
+      p = (p===2)?3:(p+2);
+      if(p>200) break; // safety
+    }
+
+    if(!found) break;
+
+    const before = current.slice();
+    for(let i=0;i<current.length;i++){
+      if(current[i]%p===0) current[i] = current[i]/p;
+    }
+    divs.push(p);
+    lines.push(`${p} | ${before.join("   ")}`);
+  }
+  lines.push(`  | ${current.join("   ")}`);
+  return {divs, lines};
+}
+
+/* ---------------- Build 20 questions with subtopic mix ---------------- */
+const MIX = {
+  easy:   { factors:4, primes:3, primeFact:3, hcf:4, multiples:3, lcm:2, word:1 },
+  medium: { factors:3, primes:3, primeFact:4, hcf:4, multiples:2, lcm:3, word:1 },
+  hard:   { factors:2, primes:3, primeFact:4, hcf:4, multiples:2, lcm:4, word:1 },
+};
+
+/* ---------------- Question generators (return {topic,prompt,answer,solution}) ---------------- */
+
+function Q_factors(rng, level){
+  const n = level==="easy" ? randInt(rng,10,60)
+          : level==="medium" ? randInt(rng,20,120)
+          : randInt(rng,40,180);
+
+  const mode = pick(rng, ["list","count"]);
+  const facs = factorsList(n);
+
+  if(mode==="count" && level!=="easy"){
+    return {
+      topic:"Factors",
+      prompt:`Factors: How many factors does ${n} have?`,
+      answer: facs.length,
+      solution:`List factors of ${n}: ${facs.join(", ")}. Total = ${facs.length}.`
+    };
+  }
+
+  return {
+    topic:"Factors",
+    prompt:`Factors: List all factors of ${n} (in ascending order).`,
+    answer: facs.join(", "),
+    solution:`Factors of ${n}: ${facs.join(", ")}.`
+  };
+}
+
+function Q_primes(rng, level){
+  if(level==="easy"){
+    const n = pick(rng,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,23,25,27,29,31]);
+    const ans = (n===1) ? "Neither" : (isPrime(n) ? "Prime" : "Composite");
+    return {
+      topic:"Prime numbers",
+      prompt:`Prime numbers: Is ${n} prime, composite, or neither?`,
+      answer: ans,
+      solution:`${n} has ${n===1 ? "only 1 factor (1), so it is neither." : (isPrime(n) ? "exactly 2 factors (1 and itself), so it is prime." : "more than 2 factors, so it is composite.")}`
+    };
+  }
+
+  // medium/hard: choose from two numbers
+  const a = randInt(rng,20,80);
+  const b = randInt(rng,20,80);
+  const prompt = `Prime numbers: Which number is prime? ${a} or ${b} (If neither, write "Neither")`;
+  const aP = isPrime(a), bP = isPrime(b);
+  const ans = (aP && !bP) ? `${a}` : (!aP && bP) ? `${b}` : (aP && bP) ? "Both" : "Neither";
+  const sol = `Check factors:\n- ${a} is ${aP ? "prime" : "not prime"}\n- ${b} is ${bP ? "prime" : "not prime"}\nAnswer: ${ans}`;
+  return { topic:"Prime numbers", prompt, answer: ans, solution: sol.replaceAll("\n","<br>") };
+}
+
+function Q_primeFact(rng, level){
+  const n = level==="easy" ? pick(rng,[12,18,20,24,28,30,36,40,42,45,48,50,54,56,60])
+          : level==="medium" ? randInt(rng,40,160)
+          : randInt(rng,80,240);
+
+  const parts = primeFactorisation(n);
+  const ans = pfToStr(parts);
+
+  // build step-by-step division
+  let x = Math.abs(n);
+  const steps = [];
+  for(const [p,k] of parts){
+    for(let i=0;i<k;i++){
+      steps.push(`${x} ÷ ${p} = ${x/p}`);
+      x = x/p;
+    }
+  }
+
+  return {
+    topic:"Prime factorisation",
+    prompt:`Prime factorisation: Write ${n} as a product of prime factors.`,
+    answer: ans,
+    solution:`Divide by primes step-by-step:<br>${steps.join("<br>")}<br>So, ${n} = ${ans}.`
+  };
+}
+
+function Q_hcf(rng, level){
+  let a, b, c=null;
+
+  if(level==="easy"){
+    a = randInt(rng,12,60);
+    b = randInt(rng,12,60);
+  } else if(level==="medium"){
+    a = randInt(rng,18,96);
+    b = randInt(rng,18,96);
+    if(rng() < 0.35) c = randInt(rng,18,96);
+  } else {
+    a = randInt(rng,30,150);
+    b = randInt(rng,30,150);
+    if(rng() < 0.5) c = randInt(rng,30,150);
+  }
+
+  // ensure not all coprime too often
+  const g = gcd(a,b);
+  if(g === 1 && level!=="easy"){
+    a *= pick(rng,[2,3]);
+  }
+
+  if(c !== null){
+    const ans = gcd(gcd(a,b),c);
+    const ladder = ladderHCF(gcd(a,b), c); // small ladder for last step
+    return {
+      topic:"HCF",
+      prompt:`HCF: Find HCF(${a}, ${b}, ${c}).`,
+      answer: ans,
+      solution:
+        `Use gcd stepwise: HCF(${a},${b}) = ${gcd(a,b)}, then HCF(${gcd(a,b)},${c}) = ${ans}.` +
+        `<br><br><b>Ladder idea (last step):</b><br><pre>${ladder.lines.join("\n")}</pre>`
+    };
+  } else {
+    const ans = gcd(a,b);
+    const ladder = ladderHCF(a,b);
+    return {
+      topic:"HCF",
+      prompt:`HCF: Find HCF(${a}, ${b}).`,
+      answer: ans,
+      solution:
+        `HCF(${a}, ${b}) = ${ans}.` +
+        `<br><br><b>Ladder method:</b><br><pre>${ladder.lines.join("\n")}</pre>` +
+        `<br>Multiply the common divisors on the left to get ${ans}.`
+    };
+  }
+}
+
+function Q_multiples(rng, level){
+  if(level==="easy"){
+    const n = randInt(rng,2,12);
+    return {
+      topic:"Multiples",
+      prompt:`Multiples: Write the first 6 multiples of ${n}.`,
+      answer: [n,2*n,3*n,4*n,5*n,6*n].join(", "),
+      solution:`Multiply ${n} by 1 to 6: ${n}×1, ${n}×2, ..., ${n}×6 → ${[n,2*n,3*n,4*n,5*n,6*n].join(", ")}`
+    };
+  }
+
+  const a = randInt(rng,3,15);
+  const b = randInt(rng,4,18);
+  const k = level==="medium" ? randInt(rng,3,6) : randInt(rng,5,8);
+  const common = lcm2(a,b);
+  const list = Array.from({length:k}, (_,i)=>common*(i+1));
+  return {
+    topic:"Common multiples",
+    prompt:`Common multiples: Write the first ${k} common multiples of ${a} and ${b}.`,
+    answer: list.join(", "),
+    solution:`First find LCM(${a},${b}) = ${common}. Common multiples are multiples of ${common}: ${list.join(", ")}`
+  };
+}
+
+function Q_lcm(rng, level){
+  let a,b,c=null;
+  if(level==="easy"){
+    a = randInt(rng,2,12);
+    b = randInt(rng,2,12);
+  } else if(level==="medium"){
+    a = randInt(rng,3,18);
+    b = randInt(rng,4,20);
+    if(rng()<0.35) c = randInt(rng,3,15);
+  } else {
+    a = randInt(rng,6,30);
+    b = randInt(rng,6,32);
+    if(rng()<0.55) c = randInt(rng,6,24);
+  }
+
+  // avoid too trivial duplicates
+  if(a===b) b += 2;
+
+  if(c!==null){
+    const ans = lcm3(a,b,c);
+    const ladder = ladderLCM([a,b,c]);
+    return {
+      topic:"LCM",
+      prompt:`LCM: Find LCM(${a}, ${b}, ${c}).`,
+      answer: ans,
+      solution:
+        `LCM(${a},${b},${c}) = ${ans}.` +
+        `<br><br><b>Ladder method:</b><br><pre>${ladder.lines.join("\n")}</pre>` +
+        `<br>Multiply the divisors on the left: ${ladder.divs.join(" × ")} = ${ans}.`
+    };
+  } else {
+    const ans = lcm2(a,b);
+    const ladder = ladderLCM([a,b]);
+    return {
+      topic:"LCM",
+      prompt:`LCM: Find LCM(${a}, ${b}).`,
+      answer: ans,
+      solution:
+        `LCM(${a},${b}) = ${ans}.` +
+        `<br><br><b>Ladder method:</b><br><pre>${ladder.lines.join("\n")}</pre>` +
+        `<br>Multiply the divisors on the left: ${ladder.divs.join(" × ")} = ${ans}.`
+    };
+  }
+}
+
+function Q_word(rng, level){
+  // real-world LCM/HCF contexts
+  const type = pick(rng, ["bells","packs","tiles"]);
+
+  if(type==="bells"){
+    const a = level==="easy" ? pick(rng,[6,8,10,12,15]) : pick(rng,[9,12,14,16,18,20,24]);
+    const b = level==="easy" ? pick(rng,[9,10,12,15,18]) : pick(rng,[12,15,18,20,24,30]);
+    const ans = lcm2(a,b);
+    return {
+      topic:"Word problems (LCM)",
+      prompt:`Word Problem: Two alarms ring every ${a} minutes and ${b} minutes. If they ring together now, after how many minutes will they ring together again?`,
+      answer: ans,
+      solution:`They ring together every LCM(${a},${b}) minutes. LCM = ${ans}.`
+    };
+  }
+
+  if(type==="packs"){
+    // HCF grouping
+    const a = level==="easy" ? randInt(rng,12,60) : randInt(rng,30,120);
+    const b = level==="easy" ? randInt(rng,12,60) : randInt(rng,30,120);
+    const g = gcd(a,b);
+    return {
+      topic:"Word problems (HCF)",
+      prompt:`Word Problem: You have ${a} sweets and ${b} chocolates. You want to make identical gift packs with no leftovers. What is the greatest number of packs you can make?`,
+      answer: g,
+      solution:`Greatest number of identical packs = HCF(${a},${b}) = ${g}.`
+    };
+  }
+
+  // tiles / arrangement using HCF
+  const L = level==="easy" ? randInt(rng,24,72) : randInt(rng,60,180);
+  const W = level==="easy" ? randInt(rng,18,60) : randInt(rng,48,160);
+  const g = gcd(L,W);
+  return {
+    topic:"Word problems (HCF)",
+    prompt:`Word Problem: A rectangle is ${L} cm by ${W} cm. You want to tile it with the largest possible square tiles (no cutting). What is the side length of each square tile?`,
+    answer: g,
+    solution:`Largest square tile side = HCF(${L},${W}) = ${g} cm.`
+  };
+}
+
+/* ---------------- Build set ---------------- */
+function buildSet(seed, level){
+  const rng = mulberry32(seed);
+  const mix = MIX[level];
+  const q = [];
+
+  const pushN = (fn, n) => { for(let i=0;i<n;i++) q.push(fn(rng, level)); };
+
+  pushN(Q_factors, mix.factors);
+  pushN(Q_primes, mix.primes);
+  pushN(Q_primeFact, mix.primeFact);
+  pushN(Q_hcf, mix.hcf);
+  pushN(Q_multiples, mix.multiples);
+  pushN(Q_lcm, mix.lcm);
+  pushN(Q_word, mix.word);
+
+  // Shuffle and take exactly 20
+  for (let i = q.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [q[i], q[j]] = [q[j], q[i]];
+  }
+  return q.slice(0, 20).map((qq, idx)=>({ ...qq, id:`q${idx+1}` }));
+}
+
+/* ---------------- UI Logic ---------------- */
+const elQuestions = document.getElementById("questions");
+const elSetCode = document.getElementById("setCode");
+const seedInput = document.getElementById("seedInput");
+const levelSel = document.getElementById("level");
+
+const btnGenerate = document.getElementById("btnGenerate");
+const btnLoad = document.getElementById("btnLoad");
+const btnCheck = document.getElementById("btnCheck");
+const btnSolutions = document.getElementById("btnSolutions");
+const btnPDF = document.getElementById("btnPDF");
+
+const printHeader = document.getElementById("printHeader");
+const printMeta = document.getElementById("printMeta");
+
+let currentSeed = null;
+let currentLevel = "easy";
+let questions = [];
+let solutionsVisible = false;
+
+function enableActions(){
+  btnCheck.disabled = false;
+  btnSolutions.disabled = false;
+  btnPDF.disabled = false;
+}
+
+function render(){
+  elSetCode.textContent = currentSeed ?? "—";
+  elQuestions.innerHTML = "";
+
+  // print header
+  if(currentSeed !== null){
+    printHeader.classList.remove("hidden");
+    printMeta.textContent = `Level: ${currentLevel.toUpperCase()} | Set Code: ${currentSeed} | Total Questions: 20`;
+  } else {
+    printHeader.classList.add("hidden");
+  }
+
+  questions.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const isNumeric = (typeof q.answer === "number");
+
+    card.innerHTML = `
+      <div class="qhead">
+        <div><b>${idx+1})</b> ${q.prompt}</div>
+        <span class="pill">${q.topic}</span>
+      </div>
+
+      <div class="row">
+        <label>Your answer:</label>
+        <input class="ans" id="${q.id}_ans" ${isNumeric ? 'type="number" step="any"' : 'type="text"'} />
+        <span id="${q.id}_mark" class="muted"></span>
+      </div>
+
+      <div id="${q.id}_sol" class="${solutionsVisible ? "" : "hidden"}" style="margin-top:10px;">
+        <div class="muted"><b>Answer:</b> ${q.answer}</div>
+        <div class="muted"><b>Working:</b> ${q.solution}</div>
+      </div>
+    `;
+    elQuestions.appendChild(card);
+  });
+
+  btnSolutions.textContent = solutionsVisible ? "Hide Solutions" : "Show Solutions";
+}
+
+function generateNew(){
+  currentLevel = levelSel.value;
+  currentSeed = Math.floor(Date.now() % 1000000000);
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function loadWithSeed(){
+  currentLevel = levelSel.value;
+  const seed = Number(seedInput.value);
+  if(!seed || Number.isNaN(seed)) { alert("Please enter a valid Set Code number."); return; }
+  currentSeed = seed;
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function normalizeListString(s){
+  // helpful for factor list answers; tolerates extra spaces
+  return s.split(",").map(x=>x.trim()).filter(Boolean).join(", ");
+}
+
+function checkAnswers(){
+  const tol = 1e-9;
+  questions.forEach(q => {
+    const input = document.getElementById(`${q.id}_ans`);
+    const mark = document.getElementById(`${q.id}_mark`);
+
+    const userRaw = input.value.trim();
+    if(userRaw === ""){
+      mark.textContent = "Not answered";
+      mark.className = "muted";
+      return;
+    }
+
+    if(typeof q.answer === "number"){
+      const userVal = Number(userRaw);
+      const correct = !Number.isNaN(userVal) && Math.abs(userVal - q.answer) < tol;
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
+    } else {
+      // string match (case-insensitive), with small normalization for comma lists
+      const a = String(q.answer).toLowerCase();
+      const u = normalizeListString(userRaw).toLowerCase();
+      const correct = (u === a) || (userRaw.toLowerCase() === a);
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
+    }
+  });
+}
+
+function toggleSolutions(){
+  solutionsVisible = !solutionsVisible;
+  render();
+}
+
+function downloadPDF(){
+  window.print();
+}
+
+/* events */
+btnGenerate.addEventListener("click", generateNew);
+btnLoad.addEventListener("click", loadWithSeed);
+btnCheck.addEventListener("click", checkAnswers);
+btnSolutions.addEventListener("click", toggleSolutions);
+btnPDF.addEventListener("click", downloadPDF);
+</script>
+
+</body>
+</html>
 
