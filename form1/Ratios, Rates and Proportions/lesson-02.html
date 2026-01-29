@@ -1,1 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 4.2: Rates | Form 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Site styling -->
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main>
+
+<div class="nav">
+  <a href="../../index.html">Home</a> ›
+  <a href="../index.html">Form 1</a> ›
+  <a href="index.html">Chapter 4: Ratio, Rate and Proportion</a>
+</div>
+
+<h1>Lesson 4.2: Rates</h1>
+
+<div class="card">
+  <h2>Learning Outcome</h2>
+  <p>
+    At the end of this lesson, you should be able to understand the meaning of rate,
+    calculate rates, and solve simple problems involving rates.
+  </p>
+</div>
+
+<div class="card">
+  <h2>What is a rate?</h2>
+  <p>
+    A <strong>rate</strong> compares two quantities with
+    <strong>different units</strong>.
+  </p>
+
+  <p>
+    Examples of rates:
+  </p>
+  <ul>
+    <li>km per hour (km/h)</li>
+    <li>RM per kilogram (RM/kg)</li>
+    <li>litres per minute (L/min)</li>
+    <li>words per minute</li>
+  </ul>
+
+  <p>
+    Example: If a car travels 120 km in 2 hours, the rate is:
+    \[
+      120 \div 2 = 60 \text{ km/h}
+    \]
+  </p>
+</div>
+
+<div class="card">
+  <h2>Difference between ratio and rate</h2>
+  <ul>
+    <li><strong>Ratio</strong>: compares quantities of the <strong>same unit</strong></li>
+    <li><strong>Rate</strong>: compares quantities of <strong>different units</strong></li>
+  </ul>
+
+  <p>
+    Example:
+  </p>
+  <ul>
+    <li>Ratio of boys to girls → same unit (people)</li>
+    <li>Speed → distance per time (km per hour)</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Calculating a rate</h2>
+  <p>
+    To calculate a rate:
+  </p>
+  <ol>
+    <li>Write the quantities clearly</li>
+    <li>Divide the first quantity by the second</li>
+    <li>State the correct units</li>
+  </ol>
+
+  <p>
+    Example 1: A cyclist travels 45 km in 3 hours.
+  </p>
+  <p>
+    Rate \(= 45 \div 3 = 15 \text{ km/h}\)
+  </p>
+
+  <p>
+    Example 2: 5 kg of rice costs RM20.
+  </p>
+  <p>
+    Rate \(= 20 \div 5 = \text{RM}4 \text{ per kg}\)
+  </p>
+</div>
+
+<div class="card">
+  <h2>Unit rates</h2>
+  <p>
+    A <strong>unit rate</strong> is a rate where the second quantity is
+    <strong>1 unit</strong>.
+  </p>
+
+  <p>
+    Examples:
+  </p>
+  <ul>
+    <li>RM6 per 1 kg</li>
+    <li>80 km per 1 hour</li>
+    <li>30 pages per 1 day</li>
+  </ul>
+
+  <p>
+    Example: 12 notebooks cost RM36.
+  </p>
+  <p>
+    Unit rate \(= 36 \div 12 = \text{RM}3\) per notebook.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Solving problems using rates</h2>
+  <p>
+    Example: A machine produces 90 bottles in 6 minutes.
+  </p>
+  <p>
+    Production rate \(= 90 \div 6 = 15\) bottles per minute.
+  </p>
+
+  <p>
+    How many bottles are produced in 10 minutes?
+  </p>
+  <p>
+    \(15 \times 10 = 150\) bottles.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Try This</h2>
+  <ol>
+    <li>A car travels 180 km in 3 hours. Find its speed.</li>
+    <li>8 kg of apples cost RM24. Find the cost per kg.</li>
+    <li>A tap fills 60 litres of water in 5 minutes. Find the rate in litres per minute.</li>
+    <li>A printer prints 240 pages in 6 minutes. How many pages are printed in 1 minute?</li>
+    <li>If a person walks at 5 km/h, how far will the person walk in 4 hours?</li>
+  </ol>
+
+  <button type="button" onclick="toggleSolutions()" class="btn">Show Solutions</button>
+
+  <div id="solutions" style="display:none; margin-top:15px;">
+    <hr>
+    <h3>Solutions</h3>
+    <ol>
+      <li>
+        \(180 \div 3 = 60\) km/h
+      </li>
+      <li>
+        \(24 \div 8 = \text{RM}3\) per kg
+      </li>
+      <li>
+        \(60 \div 5 = 12\) litres per minute
+      </li>
+      <li>
+        \(240 \div 6 = 40\) pages per minute
+      </li>
+      <li>
+        \(5 \times 4 = 20\) km
+      </li>
+    </ol>
+  </div>
+</div>
+
+</main>
+
+<script>
+  function toggleSolutions() {
+    const sol = document.getElementById("solutions");
+    const btn = event.target;
+
+    if (sol.style.display === "none") {
+      sol.style.display = "block";
+      btn.textContent = "Hide Solutions";
+    } else {
+      sol.style.display = "none";
+      btn.textContent = "Show Solutions";
+    }
+
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
+    }
+  }
+</script>
+
+</body>
+</html>
 
