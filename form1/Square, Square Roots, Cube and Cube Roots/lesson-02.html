@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 3.2: Cubes and Cube Roots | Form 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- MathJax for maths notation -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Site styling -->
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main>
+
+<div class="nav">
+  <a href="../../index.html">Home</a> ›
+  <a href="../index.html">Form 1</a> ›
+  <a href="index.html">Cubes and Cube Roots</a>
+</div>
+
+<h1>Lesson 3.2: Cubes and Cube Roots</h1>
+
+<div class="card">
+  <h2>Learning Outcome</h2>
+  <p>
+    At the end of this lesson, you should be able to find cubes
+    and cube roots of whole numbers and identify perfect cubes.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Cube Numbers</h2>
+  <p>
+    A <strong>cube number</strong> is a number obtained by multiplying
+    a whole number by itself three times.
+  </p>
+
+  <p>
+    If the number is \(n\), then its cube is:
+    \[
+      n^3 = n \times n \times n
+    \]
+  </p>
+
+  <p>Examples:</p>
+  <ul>
+    <li>\(2^3 = 2 \times 2 \times 2 = 8\)</li>
+    <li>\(3^3 = 27\)</li>
+    <li>\(5^3 = 125\)</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Common Cube Numbers</h2>
+  <p>The table below shows cube numbers from 1 to 10.</p>
+
+  <table>
+    <tr>
+      <th>Number</th><th>Cube</th>
+      <th>Number</th><th>Cube</th>
+    </tr>
+    <tr><td>1</td><td>1</td><td>6</td><td>216</td></tr>
+    <tr><td>2</td><td>8</td><td>7</td><td>343</td></tr>
+    <tr><td>3</td><td>27</td><td>8</td><td>512</td></tr>
+    <tr><td>4</td><td>64</td><td>9</td><td>729</td></tr>
+    <tr><td>5</td><td>125</td><td>10</td><td>1000</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Cubing Negative Numbers</h2>
+  <p>
+    When a negative number is cubed, the answer is negative.
+  </p>
+
+  <ul>
+    <li>\((-2)^3 = -8\)</li>
+    <li>\((-5)^3 = -125\)</li>
+  </ul>
+
+  <p>
+    This is because a negative number is multiplied an odd number of times.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Cube Roots</h2>
+  <p>
+    The <strong>cube root</strong> of a number is the value that,
+    when multiplied by itself three times, gives the original number.
+  </p>
+
+  <p>
+    The cube root symbol is \(\sqrt[3]{\ \ }\).
+  </p>
+
+  <p>Examples:</p>
+  <ul>
+    <li>\(\sqrt[3]{8} = 2\), because \(2^3 = 8\)</li>
+    <li>\(\sqrt[3]{27} = 3\)</li>
+    <li>\(\sqrt[3]{125} = 5\)</li>
+    <li>\(\sqrt[3]{-64} = -4\)</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Perfect Cubes</h2>
+  <p>
+    A <strong>perfect cube</strong> is a number that can be written
+    as the cube of a whole number.
+  </p>
+
+  <p>
+    Examples of perfect cubes:
+  </p>
+  <p>
+    \(1, 8, 27, 64, 125, 216, 343, 512, 729, 1000\)
+  </p>
+
+  <p>
+    Numbers such as 50 or 200 are <strong>not</strong> perfect cubes.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Try This</h2>
+
+  <ol>
+    <li>Find \(4^3\).</li>
+    <li>Find \(\sqrt[3]{64}\).</li>
+    <li>Evaluate \((-3)^3\).</li>
+    <li>Is 125 a perfect cube? Explain.</li>
+    <li>Find \(\sqrt[3]{-27}\).</li>
+  </ol>
+
+  <button onclick="toggleSolutions()" class="btn">
+    Show Solutions
+  </button>
+
+  <div id="solutions" style="display:none; margin-top:15px;">
+    <hr>
+
+    <h3>Solutions</h3>
+    <ol>
+      <li>
+        \(4^3 = 4 \times 4 \times 4 = 64\)
+      </li>
+
+      <li>
+        Since \(4^3 = 64\),<br>
+        \(\sqrt[3]{64} = 4\)
+      </li>
+
+      <li>
+        \((-3)^3 = -27\)
+      </li>
+
+      <li>
+        Yes. \(125 = 5^3\),<br>
+        so 125 is a perfect cube.
+      </li>
+
+      <li>
+        Since \((-3)^3 = -27\),<br>
+        \(\sqrt[3]{-27} = -3\)
+      </li>
+    </ol>
+  </div>
+</div>
+
+</main>
+
+<script>
+  function toggleSolutions() {
+    const sol = document.getElementById("solutions");
+    const btn = event.target;
+
+    if (sol.style.display === "none") {
+      sol.style.display = "block";
+      btn.textContent = "Hide Solutions";
+    } else {
+      sol.style.display = "none";
+      btn.textContent = "Show Solutions";
+    }
+  }
+</script>
+
+</body>
+</html>
 
