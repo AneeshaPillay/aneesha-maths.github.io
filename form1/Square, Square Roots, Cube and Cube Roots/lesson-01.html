@@ -152,9 +152,9 @@
     \]
   </p>
 </div>
-
 <div class="card">
   <h2>Try This</h2>
+
   <ol>
     <li>Find \(9^2\).</li>
     <li>Find \(\sqrt{121}\).</li>
@@ -162,43 +162,60 @@
     <li>Is 90 a perfect square? Explain.</li>
     <li>Estimate \(\sqrt{50}\).</li>
   </ol>
+
+  <button onclick="toggleSolutions()" class="btn">
+    Show Solutions
+  </button>
+
+  <div id="solutions" style="display:none; margin-top:15px;">
+    <hr>
+
+    <h3>Solutions</h3>
+    <ol>
+      <li>
+        \(9^2 = 9 \times 9 = 81\)
+      </li>
+
+      <li>
+        Since \(11^2 = 121\),<br>
+        \(\sqrt{121} = 11\)
+      </li>
+
+      <li>
+        \((-6)^2 = (-6)(-6) = 36\)
+      </li>
+
+      <li>
+        No. \(81 = 9^2\) and \(100 = 10^2\),<br>
+        so 90 lies between 81 and 100 and is not a perfect square.
+      </li>
+
+      <li>
+        \(49 = 7^2\) and \(64 = 8^2\),<br>
+        so \(7 < \sqrt{50} < 8\).<br>
+        Therefore, \(\sqrt{50} \approx 7\).
+      </li>
+    </ol>
+  </div>
 </div>
-<div class="card">
-  <h2>Solutions</h2>
 
-  <ol>
-    <li>
-      <strong>Find \(9^2\).</strong><br>
-      \(9^2 = 9 \times 9 = 81\)
-    </li>
-
-    <li>
-      <strong>Find \(\sqrt{121}\).</strong><br>
-      Since \(11^2 = 121\),<br>
-      \(\sqrt{121} = 11\)
-    </li>
-
-    <li>
-      <strong>Evaluate \((-6)^2\).</strong><br>
-      \((-6)^2 = (-6)(-6) = 36\)
-    </li>
-
-    <li>
-      <strong>Is 90 a perfect square? Explain.</strong><br>
-      No. \(81 = 9^2\) and \(100 = 10^2\),<br>
-      so 90 lies between 81 and 100 and is not a perfect square.
-    </li>
-
-    <li>
-      <strong>Estimate \(\sqrt{50}\).</strong><br>
-      Since \(49 = 7^2\) and \(64 = 8^2\),<br>
-      \(7 < \sqrt{50} < 8\).<br>
-      Therefore, \(\sqrt{50}\) is approximately 7.
-    </li>
-  </ol>
-</div>
 
 
 </main>
+<script>
+  function toggleSolutions() {
+    const sol = document.getElementById("solutions");
+    const btn = event.target;
+
+    if (sol.style.display === "none") {
+      sol.style.display = "block";
+      btn.textContent = "Hide Solutions";
+    } else {
+      sol.style.display = "none";
+      btn.textContent = "Show Solutions";
+    }
+  }
+</script>
+
 </body>
 </html>
