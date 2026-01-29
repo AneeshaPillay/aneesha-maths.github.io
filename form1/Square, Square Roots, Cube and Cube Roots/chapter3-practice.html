@@ -1,1 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chapter 3 | Worksheet Generator (3.1 & 3.2)</title>
+  <style>
+    :root { --border:#e5e7eb; --muted:#6b7280; }
+    body { font-family: system-ui, Arial; margin: 24px; line-height: 1.45; }
+    h1 { margin: 0 0 6px; }
+    .muted { color: var(--muted); }
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 14px 0 18px; }
+    .card { border:1px solid var(--border); border-radius:14px; padding:14px; margin:12px 0; }
+    button, select, input {
+      padding:10px 12px; border-radius:12px; border:1px solid #d1d5db; background:#fff; font: inherit;
+    }
+    button { cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#f3f4f6; font-size:.9rem; }
+    .qhead { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .ans { width: 220px; }
+    .ok { color:#0a7a2f; font-weight:600; }
+    .bad { color:#b00020; font-weight:600; }
+    .hidden { display:none; }
+
+    @media print {
+      .no-print { display:none !important; }
+      body { margin: 10mm; }
+      .card { break-inside: avoid; }
+      input { border: 1px solid #999; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    <h1>Chapter 3 Worksheet Generator</h1>
+    <div class="muted">Topic 3.1 (Squares & Square Roots) + Topic 3.2 (Cubes & Cube Roots)</div>
+
+    <div class="toolbar">
+      <label class="pill">Level:
+        <select id="level">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+
+      <button id="btnGenerate">Generate 20 Questions</button>
+
+      <label class="pill">Set Code (optional):
+        <input id="seedInput" type="number" placeholder="e.g. student ID" style="width:220px;">
+      </label>
+
+      <button id="btnLoad">Load with Code</button>
+
+      <span class="pill">Current Set: <span id="setCode">—</span></span>
+
+      <button id="btnCheck" disabled>Check Answers</button>
+      <button id="btnSolutions" disabled>Show Solutions</button>
+      <button id="btnPDF" disabled>Download PDF</button>
+    </div>
+
+    <div class="card muted">
+      <b>Tip:</b> For consistent worksheets, ask students to enter their <b>student ID</b> as the Set Code and click <b>Load with Code</b>.
+      <br><b>Answer format tip:</b> For “estimate” questions, type answers like <b>between 7 and 8</b> or <b>≈ 7</b>.
+    </div>
+  </div>
+
+  <div id="printHeader" class="hidden">
+    <h2 style="margin:0;">Chapter 3 Worksheet</h2>
+    <div class="muted" id="printMeta"></div>
+    <hr style="border:none;border-top:1px solid #ddd;margin:10px 0 14px;">
+  </div>
+
+  <div id="questions"></div>
+
+<script>
+/* ---------------- Seeded RNG ---------------- */
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+function randInt(rng, min, max) { return Math.floor(rng() * (max - min + 1)) + min; }
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+function roundTo(x, dp=2){ const p=Math.pow(10,dp); return Math.round(x*p)/p; }
+
+function fmtSigned(n){ return n < 0 ? `(${n})` : `${n}`; } // for showing negative neatly
+
+/* ---------------- Helpers for squares/cubes ---------------- */
+function isPerfectSquare(n){
+  if(n < 0) return false;
+  const r = Math.floor(Math.sqrt(n));
+  return r*r === n;
+}
+function isPerfectCube(n){
+  const r = Math.round(Math.cbrt(n));
+  return r*r*r === n;
+}
+function cube(n){ return n*n*n; }
+function sq(n){ return n*n; }
+
+/* ---------------- Build 20 questions with subtopic mix ---------------- */
+/* You can tweak these counts anytime */
+const MIX = {
+  easy:   { sq:5, sqrt:5, cube:4, cbrt:4, concept:2 },
+  medium: { sq:4, sqrt:5, cube:4, cbrt:4, concept:3 },
+  hard:   { sq:4, sqrt:4, cube:4, cbrt:4, concept:4 },
+};
+
+/* Each generator returns: { topic, prompt, answer (number|string), solution } */
+
+function Q_square(rng, level){
+  if(level==="easy"){
+    const n = randInt(rng, 2, 15);
+    const prompt = `Compute ${n}^2`;
+    const ans = sq(n);
+    return { topic:"3.1 Squares", prompt, answer: ans, solution: `${n}^2 = ${n} × ${n} = ${ans}` };
+  }
+  if(level==="medium"){
+    const n = randInt(rng, -15, 15);
+    const prompt = `Compute (${fmtSigned(n)})^2`;
+    const ans = sq(n);
+    return { topic:"3.1 Squares", prompt, answer: ans, solution: `(${n})^2 = ${n} × ${n} = ${ans}` };
+  }
+  // hard: bracket vs no bracket
+  const n = randInt(rng, 2, 15);
+  const prompt = `Evaluate: (-${n})^2 and -${n}^2`;
+  const a = sq(-n);      // (-n)^2
+  const b = -sq(n);      // -(n^2)
+  const ans = `${a}, ${b}`;
+  return {
+    topic:"3.1 Squares",
+    prompt,
+    answer: ans,
+    solution: `(-${n})^2 = (-${n})(-${n}) = ${a}.  But -${n}^2 means -( ${n}^2 ) = -${sq(n)} = ${b}.`
+  };
+}
+
+function Q_sqrt(rng, level){
+  if(level==="easy"){
+    const r = randInt(rng, 2, 15);
+    const n = r*r;
+    const prompt = `Find √${n}`;
+    return { topic:"3.1 Square Roots", prompt, answer: r, solution: `√${n} = ${r} because ${r}^2 = ${n}` };
+  }
+  if(level==="medium"){
+    const r1 = randInt(rng, 2, 12);
+    const r2 = randInt(rng, 2, 12);
+    const a = r1*r1, b = r2*r2;
+    const prompt = `Compute √${a} + √${b}`;
+    const ans = r1 + r2;
+    return { topic:"3.1 Square Roots", prompt, answer: ans, solution: `√${a}=${r1}, √${b}=${r2}. So ${r1}+${r2}=${ans}` };
+  }
+  // hard: estimate between consecutive squares
+  const r = randInt(rng, 5, 12);
+  const low = r*r;
+  const high = (r+1)*(r+1);
+  const n = randInt(rng, low+1, high-1);
+  const prompt = `Estimate √${n} (write: "between ${r} and ${r+1}")`;
+  const ans = `between ${r} and ${r+1}`;
+  return {
+    topic:"3.1 Square Roots",
+    prompt,
+    answer: ans,
+    solution: `${r}^2=${low} and ${(r+1)}^2=${high}. Since ${low} < ${n} < ${high}, √${n} is between ${r} and ${r+1}.`
+  };
+}
+
+function Q_cube(rng, level){
+  if(level==="easy"){
+    const n = randInt(rng, 2, 10);
+    const prompt = `Compute ${n}^3`;
+    const ans = cube(n);
+    return { topic:"3.2 Cubes", prompt, answer: ans, solution: `${n}^3 = ${n}×${n}×${n} = ${ans}` };
+  }
+  if(level==="medium"){
+    const n = randInt(rng, -10, 10);
+    const prompt = `Compute (${fmtSigned(n)})^3`;
+    const ans = cube(n);
+    return { topic:"3.2 Cubes", prompt, answer: ans, solution: `(${n})^3 = ${n}×${n}×${n} = ${ans}` };
+  }
+  // hard: mixed expression
+  const a = randInt(rng, 2, 8);
+  const b = randInt(rng, 2, 8);
+  const prompt = `Compute ${a}^3 − ${b}^3`;
+  const ans = cube(a) - cube(b);
+  return {
+    topic:"3.2 Cubes",
+    prompt,
+    answer: ans,
+    solution: `${a}^3=${cube(a)} and ${b}^3=${cube(b)}. So ${cube(a)} − ${cube(b)} = ${ans}`
+  };
+}
+
+function Q_cuberoot(rng, level){
+  if(level==="easy"){
+    const r = randInt(rng, 2, 10);
+    const n = r*r*r;
+    const prompt = `Find ∛${n}`;
+    return { topic:"3.2 Cube Roots", prompt, answer: r, solution: `∛${n} = ${r} because ${r}^3 = ${n}` };
+  }
+  if(level==="medium"){
+    const r = randInt(rng, 2, 8);
+    const n = -(r*r*r);
+    const prompt = `Find ∛(${n})`;
+    return { topic:"3.2 Cube Roots", prompt, answer: -r, solution: `∛(${n}) = -${r} because (-${r})^3 = ${n}` };
+  }
+  // hard: combine cube roots
+  const r1 = randInt(rng, 2, 8);
+  const r2 = randInt(rng, 2, 8);
+  const a = r1*r1*r1, b = r2*r2*r2;
+  const op = pick(rng, ["+","-"]);
+  const prompt = `Compute ∛${a} ${op} ∛${b}`;
+  const ans = op==="+" ? (r1 + r2) : (r1 - r2);
+  return {
+    topic:"3.2 Cube Roots",
+    prompt,
+    answer: ans,
+    solution: `∛${a}=${r1} and ∛${b}=${r2}. So ${r1} ${op} ${r2} = ${ans}`
+  };
+}
+
+function Q_concept(rng, level){
+  const kind = pick(rng, ["ps", "pc", "betweenS", "betweenC"]);
+  if(kind==="ps"){
+    // perfect square yes/no
+    let n;
+    if(level==="easy"){
+      const r = randInt(rng, 2, 15);
+      n = r*r;
+    } else {
+      // sometimes not a square
+      n = randInt(rng, 20, 200);
+      if(rng() < 0.5){
+        const r = randInt(rng, 5, 15);
+        n = r*r;
+      } else {
+        while(isPerfectSquare(n)) n = randInt(rng, 20, 200);
+      }
+    }
+    const ans = isPerfectSquare(n) ? "Yes" : "No";
+    const solution = isPerfectSquare(n)
+      ? `${n} is a perfect square because it equals ${Math.sqrt(n)}^2.`
+      : `No. It is not the square of a whole number (it lies between two consecutive squares).`;
+    return { topic:"Concept", prompt:`Is ${n} a perfect square? (Yes/No)`, answer: ans, solution };
+  }
+
+  if(kind==="pc"){
+    let n;
+    if(level==="easy"){
+      const r = randInt(rng, 2, 10);
+      n = r*r*r;
+    } else {
+      n = randInt(rng, -300, 800);
+      if(rng() < 0.5){
+        const r = randInt(rng, -10, 10);
+        n = r*r*r;
+      } else {
+        while(isPerfectCube(n)) n = randInt(rng, -300, 800);
+      }
+    }
+    const ans = isPerfectCube(n) ? "Yes" : "No";
+    const solution = isPerfectCube(n)
+      ? `${n} is a perfect cube because it equals ${Math.round(Math.cbrt(n))}^3.`
+      : `No. It is not the cube of a whole number (it lies between two consecutive cubes).`;
+    return { topic:"Concept", prompt:`Is ${n} a perfect cube? (Yes/No)`, answer: ans, solution };
+  }
+
+  if(kind==="betweenS"){
+    const r = randInt(rng, 4, 12);
+    const low = r*r, high=(r+1)*(r+1);
+    const n = randInt(rng, low+1, high-1);
+    const ans = `between ${r} and ${r+1}`;
+    return {
+      topic:"Concept",
+      prompt:`Without calculating, √${n} is (write: "between ${r} and ${r+1}")`,
+      answer: ans,
+      solution: `${r}^2=${low} and ${(r+1)}^2=${high}. Since ${low}<${n}<${high}, √${n} is between ${r} and ${r+1}.`
+    };
+  }
+
+  // betweenC (cube root between)
+  const r = randInt(rng, 2, 9);
+  const low = r*r*r, high=(r+1)*(r+1)*(r+1);
+  const n = randInt(rng, low+1, high-1);
+  const ans = `between ${r} and ${r+1}`;
+  return {
+    topic:"Concept",
+    prompt:`Without calculating, ∛${n} is (write: "between ${r} and ${r+1}")`,
+    answer: ans,
+    solution: `${r}^3=${low} and ${(r+1)}^3=${high}. Since ${low}<${n}<${high}, ∛${n} is between ${r} and ${r+1}.`
+  };
+}
+
+/* Build set */
+function buildSet(seed, level){
+  const rng = mulberry32(seed);
+  const mix = MIX[level];
+  const q = [];
+
+  const pushN = (fn, n) => { for(let i=0;i<n;i++) q.push(fn(rng, level)); };
+
+  pushN(Q_square, mix.sq);
+  pushN(Q_sqrt, mix.sqrt);
+  pushN(Q_cube, mix.cube);
+  pushN(Q_cuberoot, mix.cbrt);
+  pushN(Q_concept, mix.concept);
+
+  // Shuffle and take exactly 20
+  for (let i = q.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [q[i], q[j]] = [q[j], q[i]];
+  }
+  return q.slice(0, 20).map((qq, idx)=>({ ...qq, id:`q${idx+1}` }));
+}
+
+/* ---------------- UI Logic ---------------- */
+const elQuestions = document.getElementById("questions");
+const elSetCode = document.getElementById("setCode");
+const seedInput = document.getElementById("seedInput");
+const levelSel = document.getElementById("level");
+
+const btnGenerate = document.getElementById("btnGenerate");
+const btnLoad = document.getElementById("btnLoad");
+const btnCheck = document.getElementById("btnCheck");
+const btnSolutions = document.getElementById("btnSolutions");
+const btnPDF = document.getElementById("btnPDF");
+
+const printHeader = document.getElementById("printHeader");
+const printMeta = document.getElementById("printMeta");
+
+let currentSeed = null;
+let currentLevel = "easy";
+let questions = [];
+let solutionsVisible = false;
+
+function enableActions(){
+  btnCheck.disabled = false;
+  btnSolutions.disabled = false;
+  btnPDF.disabled = false;
+}
+
+function render(){
+  elSetCode.textContent = currentSeed ?? "—";
+  elQuestions.innerHTML = "";
+
+  if(currentSeed !== null){
+    printHeader.classList.remove("hidden");
+    printMeta.textContent = `Level: ${currentLevel.toUpperCase()} | Set Code: ${currentSeed} | Total Questions: 20`;
+  } else {
+    printHeader.classList.add("hidden");
+  }
+
+  questions.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const isNumeric = (typeof q.answer === "number");
+
+    card.innerHTML = `
+      <div class="qhead">
+        <div><b>${idx+1})</b> ${q.prompt}</div>
+        <span class="pill">${q.topic}</span>
+      </div>
+
+      <div class="row">
+        <label>Your answer:</label>
+        <input class="ans" id="${q.id}_ans" ${isNumeric ? 'type="number" step="any"' : 'type="text"'} />
+        <span id="${q.id}_mark" class="muted"></span>
+      </div>
+
+      <div id="${q.id}_sol" class="${solutionsVisible ? "" : "hidden"}" style="margin-top:10px;">
+        <div class="muted"><b>Answer:</b> ${q.answer}</div>
+        <div class="muted"><b>Working:</b> ${q.solution}</div>
+      </div>
+    `;
+    elQuestions.appendChild(card);
+  });
+
+  btnSolutions.textContent = solutionsVisible ? "Hide Solutions" : "Show Solutions";
+}
+
+function generateNew(){
+  currentLevel = levelSel.value;
+  currentSeed = Math.floor(Date.now() % 1000000000);
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function loadWithSeed(){
+  currentLevel = levelSel.value;
+  const seed = Number(seedInput.value);
+  if(!seed || Number.isNaN(seed)) { alert("Please enter a valid Set Code number."); return; }
+  currentSeed = seed;
+  questions = buildSet(currentSeed, currentLevel);
+  solutionsVisible = false;
+  enableActions();
+  render();
+}
+
+function normalizeText(s){
+  return String(s).trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function checkAnswers(){
+  const tol = 1e-9;
+
+  questions.forEach(q => {
+    const input = document.getElementById(`${q.id}_ans`);
+    const mark = document.getElementById(`${q.id}_mark`);
+
+    const userRaw = input.value.trim();
+    if(userRaw === ""){
+      mark.textContent = "Not answered";
+      mark.className = "muted";
+      return;
+    }
+
+    if(typeof q.answer === "number"){
+      const userVal = Number(userRaw);
+      const correct = !Number.isNaN(userVal) && Math.abs(userVal - q.answer) < tol;
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
+    } else {
+      // case-insensitive, ignore extra spaces
+      const correct = normalizeText(userRaw) === normalizeText(q.answer);
+      mark.textContent = correct ? "✔ Correct" : "✘ Incorrect";
+      mark.className = correct ? "ok" : "bad";
+    }
+  });
+}
+
+function toggleSolutions(){
+  solutionsVisible = !solutionsVisible;
+  render();
+}
+
+function downloadPDF(){
+  window.print();
+}
+
+/* events */
+btnGenerate.addEventListener("click", generateNew);
+btnLoad.addEventListener("click", loadWithSeed);
+btnCheck.addEventListener("click", checkAnswers);
+btnSolutions.addEventListener("click", toggleSolutions);
+btnPDF.addEventListener("click", downloadPDF);
+</script>
+
+</body>
+</html>
 
