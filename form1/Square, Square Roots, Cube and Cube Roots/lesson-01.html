@@ -1,1 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Topic 3.1 | Squares and Square Roots (Form 1)</title>
+  <style>
+    :root{
+      --border:#e5e7eb;
+      --muted:#6b7280;
+      --bg:#ffffff;
+      --soft:#f9fafb;
+      --ink:#111827;
+      --accent:#2563eb;
+      --accent2:#16a34a;
+      --warn:#b45309;
+    }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 24px;
+      color: var(--ink);
+      line-height: 1.55;
+      background: var(--bg);
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      border-bottom:1px solid var(--border);
+      padding-bottom:14px;
+      margin-bottom:18px;
+    }
+    h1{ margin:0; font-size: 1.6rem; }
+    .sub{ color: var(--muted); margin: 6px 0 0; }
+    .chip{
+      display:inline-block;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size:.9rem;
+    }
+    .wrap{ max-width: 980px; margin: 0 auto; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media(min-width: 920px){
+      .grid{ grid-template-columns: 1.2fr .8fr; }
+    }
+    .card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      background: #fff;
+    }
+    h2{ margin: 0 0 8px; font-size: 1.2rem; }
+    h3{ margin: 14px 0 6px; font-size: 1.05rem; }
+    .muted{ color: var(--muted); }
+    ul{ margin: 8px 0 0 18px; }
+    .note{
+      border-left: 4px solid var(--accent);
+      background: #eff6ff;
+      padding:10px 12px;
+      border-radius:12px;
+      margin-top:10px;
+    }
+    .warn{
+      border-left: 4px solid var(--warn);
+      background: #fff7ed;
+      padding:10px 12px;
+      border-radius:12px;
+      margin-top:10px;
+    }
+    .ok{
+      border-left: 4px solid var(--accent2);
+      background: #f0fdf4;
+      padding:10px 12px;
+      border-radius:12px;
+      margin-top:10px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: var(--soft);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:2px 6px;
+      font-size: .95em;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top:10px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid var(--border);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      vertical-align: top;
+    }
+    th{ background: var(--soft); }
+    tr:last-child td{ border-bottom:none; }
+    .two-col{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media(min-width: 720px){
+      .two-col{ grid-template-columns: 1fr 1fr; }
+    }
+    details{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
+      background: #fff;
+      margin-top:10px;
+    }
+    summary{
+      cursor:pointer;
+      font-weight:600;
+    }
+    .pill{
+      display:inline-block;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--soft);
+      font-size:.85rem;
+      color: var(--muted);
+      margin-left:6px;
+    }
+    .btnrow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+    button{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #d1d5db;
+      background:#fff;
+      font: inherit;
+      cursor:pointer;
+    }
+    button.primary{
+      border-color: #93c5fd;
+      background:#eff6ff;
+    }
+    .q{
+      padding:10px 12px;
+      border:1px dashed #d1d5db;
+      border-radius:14px;
+      background: #fff;
+      margin-top:10px;
+    }
+    .ans{
+      color: var(--muted);
+      margin-top:6px;
+      display:none;
+    }
+    .footer{
+      margin-top:18px;
+      color: var(--muted);
+      font-size: .95rem;
+      border-top:1px solid var(--border);
+      padding-top:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Topic 3.1: Squares and Square Roots</h1>
+        <p class="sub">Form 1 Mathematics (Malaysia) — Notes + Worked Examples + Practice</p>
+      </div>
+      <div class="chip">Chapter 3 • Number Operations</div>
+    </header>
+
+    <div class="grid">
+      <!-- MAIN CONTENT -->
+      <main class="card">
+        <h2>1) Square Numbers</h2>
+        <p>
+          A <b>square number</b> is a number obtained by multiplying an integer by itself.
+        </p>
+        <div class="note">
+          <b>Definition:</b> If a number is <span class="kbd">n</span>, then its square is
+          <span class="kbd">n² = n × n</span>.
+          <br/>
+          Example: <span class="kbd">7² = 7 × 7 = 49</span>
+        </div>
+
+        <h3>Common Square Numbers (1 to 15)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>n</th>
+              <th>n²</th>
+              <th>n</th>
+              <th>n²</th>
+              <th>n</th>
+              <th>n²</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>6</td><td>36</td><td>11</td><td>121</td></tr>
+            <tr><td>2</td><td>4</td><td>7</td><td>49</td><td>12</td><td>144</td></tr>
+            <tr><td>3</td><td>9</td><td>8</td><td>64</td><td>13</td><td>169</td></tr>
+            <tr><td>4</td><td>16</td><td>9</td><td>81</td><td>14</td><td>196</td></tr>
+            <tr><td>5</td><td>25</td><td>10</td><td>100</td><td>15</td><td>225</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Important idea: Negative Numbers</h3>
+        <div class="warn">
+          When we square a negative number, the answer becomes positive:
+          <ul>
+            <li><span class="kbd">(-5)² = (-5) × (-5) = 25</span></li>
+            <li>But <span class="kbd">-5²</span> means <span class="kbd">-(5²) = -25</span> (no bracket).</li>
+          </ul>
+          <b>Tip:</b> Use brackets for negative numbers before squaring.
+        </div>
+
+        <h2 style="margin-top:18px;">2) Square Roots</h2>
+        <p>
+          The <b>square root</b> of a number is the value that gives the number when squared.
+        </p>
+        <div class="note">
+          <b>Definition:</b> <span class="kbd">√a</span> means the <b>positive</b> number whose square is <span class="kbd">a</span>.
+          <br/>
+          Example: <span class="kbd">√49 = 7</span> because <span class="kbd">7² = 49</span>.
+        </div>
+
+        <h3>Worked Examples</h3>
+
+        <div class="q">
+          <b>Example 1:</b> Find <span class="kbd">12²</span>.
+          <div class="ans" style="display:block;">
+            <b>Solution:</b> 12² = 12 × 12 = 144
+          </div>
+        </div>
+
+        <div class="q">
+          <b>Example 2:</b> Find <span class="kbd">√169</span>.
+          <div class="ans" style="display:block;">
+            <b>Solution:</b> 169 is 13², so √169 = 13
+          </div>
+        </div>
+
+        <div class="q">
+          <b>Example 3:</b> Evaluate <span class="kbd">(-8)²</span> and <span class="kbd">-8²</span>.
+          <div class="ans" style="display:block;">
+            <b>Solution:</b>
+            <ul>
+              <li>(-8)² = (-8)(-8) = 64</li>
+              <li>-8² = -(8²) = -64</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="q">
+          <b>Example 4:</b> Simplify: <span class="kbd">√(81) + √(16)</span>
+          <div class="ans" style="display:block;">
+            <b>Solution:</b> √81 = 9 and √16 = 4, so 9 + 4 = 13
+          </div>
+        </div>
+
+        <h2 style="margin-top:18px;">3) Perfect Squares vs Not Perfect Squares</h2>
+        <p>
+          A <b>perfect square</b> is a number that is the square of an integer (like 36 = 6²).
+          Numbers like 20 or 50 are <b>not</b> perfect squares, so their square roots are not whole numbers.
+        </p>
+
+        <div class="ok">
+          <b>Quick check:</b> If a number is between two consecutive squares, its square root is between those integers.
+          <br/>
+          Example: 49 &lt; 60 &lt; 64 → 7² &lt; 60 &lt; 8² → √60 is between 7 and 8.
+        </div>
+
+        <details>
+          <summary>Extra: Estimating a square root <span class="pill">optional</span></summary>
+          <p class="muted">
+            To estimate √N, find the two perfect squares around N.
+          </p>
+          <p>
+            Example: Estimate √50. <br/>
+            49 = 7² and 64 = 8², so √50 is between 7 and 8, and closer to 7 (because 50 is close to 49).
+          </p>
+        </details>
+
+        <h2 style="margin-top:18px;">4) Practice Questions</h2>
+        <p class="muted">Try first. Then click “Show Answers”.</p>
+
+        <div class="q">
+          <b>Q1.</b> Calculate <span class="kbd">9²</span>.
+          <div class="ans">Answer: 81</div>
+        </div>
+        <div class="q">
+          <b>Q2.</b> Calculate <span class="kbd">√121</span>.
+          <div class="ans">Answer: 11</div>
+        </div>
+        <div class="q">
+          <b>Q3.</b> Evaluate <span class="kbd">(-6)²</span>.
+          <div class="ans">Answer: 36</div>
+        </div>
+        <div class="q">
+          <b>Q4.</b> Evaluate <span class="kbd">-6²</span>.
+          <div class="ans">Answer: -36</div>
+        </div>
+        <div class="q">
+          <b>Q5.</b> Find the value of <span class="kbd">√(64) + √(25)</span>.
+          <div class="ans">Answer: 8 + 5 = 13</div>
+        </div>
+        <div class="q">
+          <b>Q6.</b> Is 90 a perfect square? Explain briefly.
+          <div class="ans">Answer: No. 81 = 9² and 100 = 10², so 90 is between them (not a square of an integer).</div>
+        </div>
+
+        <div class="btnrow">
+          <button class="primary" id="showBtn">Show Answers</button>
+          <button id="hideBtn">Hide Answers</button>
+        </div>
+
+        <div class="footer">
+          Tip for students: Memorise common squares (1² to 15²). It makes square roots much faster.
+        </div>
+      </main>
+
+      <!-- SIDEBAR -->
+      <aside class="card">
+        <h2>Quick Summary</h2>
+        <ul>
+          <li><b>Square:</b> <span class="kbd">n² = n × n</span></li>
+          <li><b>Square root:</b> <span class="kbd">√a</span> is the positive number that squares to <span class="kbd">a</span></li>
+          <li><b>Perfect squares:</b> 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, ...</li>
+          <li><b>Brackets matter:</b> <span class="kbd">(-5)²</span> ≠ <span class="kbd">-5²</span></li>
+        </ul>
+
+        <h3>Mini Drill</h3>
+        <div class="two-col">
+          <div class="q">
+            <b>√144</b>
+            <div class="ans">12</div>
+          </div>
+          <div class="q">
+            <b>13²</b>
+            <div class="ans">169</div>
+          </div>
+          <div class="q">
+            <b>√81</b>
+            <div class="ans">9</div>
+          </div>
+          <div class="q">
+            <b>15²</b>
+            <div class="ans">225</div>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:10px;">
+          Click “Show Answers” to reveal the mini drill answers too.
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const showBtn = document.getElementById("showBtn");
+    const hideBtn = document.getElementById("hideBtn");
+    const answers = document.querySelectorAll(".ans");
+
+    function showAnswers(){
+      answers.forEach(a => a.style.display = "block");
+    }
+    function hideAnswers(){
+      // Keep worked example solutions visible (they were set display:block inline)
+      answers.forEach(a => {
+        const parent = a.closest(".q");
+        const isWorkedExample = parent && parent.querySelector("b") && parent.querySelector("b").textContent.includes("Example");
+        if(!isWorkedExample) a.style.display = "none";
+      });
+    }
+
+    showBtn.addEventListener("click", showAnswers);
+    hideBtn.addEventListener("click", hideAnswers);
+  </script>
+</body>
+</html>
 
