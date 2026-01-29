@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Overall Practice: Topic Review Quiz | Chapter 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Site styling -->
+  <link rel="stylesheet" href="../../assets/style.css">
+
+  <style>
+    .question { margin-bottom: 16px; }
+    .feedback { margin-top: 8px; font-weight: 700; }
+    .correct { color: #1a7f37; }
+    .wrong { color: #d1242f; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
+    button:hover { opacity: 0.95; }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="../../index.html">Home</a> ›
+  <a href="../index.html">Form 1</a> ›
+  <a href="index.html">Chapter 3</a>
+</div>
+
+<h1>Overall Practice: Chapter 3 Review Quiz</h1>
+
+<div class="card">
+  <p>This quiz reviews:</p>
+  <ul>
+    <li>Squares and square roots (Topic 3.1)</li>
+    <li>Cubes and cube roots (Topic 3.2)</li>
+    <li>Perfect squares and perfect cubes</li>
+    <li>Negative numbers and brackets</li>
+    <li>Estimating roots (between two squares/cubes)</li>
+  </ul>
+</div>
+
+<!-- Score appears after checking -->
+<div class="card" id="scoreBox" style="display:none;">
+  <h2>Your Score</h2>
+  <p id="scoreText"></p>
+</div>
+
+<form id="quiz">
+
+  <div class="card question">
+    <p><strong>1.</strong> Evaluate \(7^2\).</p>
+    <label><input type="radio" name="q1" value="a"> 14</label><br>
+    <label><input type="radio" name="q1" value="b"> 49</label><br>
+    <label><input type="radio" name="q1" value="c"> 21</label>
+    <div id="f1" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>2.</strong> Evaluate \( \sqrt{81} \).</p>
+    <label><input type="radio" name="q2" value="a"> 8</label><br>
+    <label><input type="radio" name="q2" value="b"> 9</label><br>
+    <label><input type="radio" name="q2" value="c"> 81</label>
+    <div id="f2" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>3.</strong> Which is correct?</p>
+    <label><input type="radio" name="q3" value="a"> \((-5)^2 = -25\)</label><br>
+    <label><input type="radio" name="q3" value="b"> \((-5)^2 = 25\)</label><br>
+    <label><input type="radio" name="q3" value="c"> \((-5)^2 = 0\)</label>
+    <div id="f3" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>4.</strong> Evaluate \( -6^2 \).</p>
+    <label><input type="radio" name="q4" value="a"> 36</label><br>
+    <label><input type="radio" name="q4" value="b"> -36</label><br>
+    <label><input type="radio" name="q4" value="c"> -12</label>
+    <div id="f4" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>5.</strong> \(49 &lt; 60 &lt; 64\). Therefore \( \sqrt{60} \) is:</p>
+    <label><input type="radio" name="q5" value="a"> between 6 and 7</label><br>
+    <label><input type="radio" name="q5" value="b"> between 7 and 8</label><br>
+    <label><input type="radio" name="q5" value="c"> exactly 8</label>
+    <div id="f5" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>6.</strong> Evaluate \(3^3\).</p>
+    <label><input type="radio" name="q6" value="a"> 9</label><br>
+    <label><input type="radio" name="q6" value="b"> 27</label><br>
+    <label><input type="radio" name="q6" value="c"> 33</label>
+    <div id="f6" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>7.</strong> Evaluate \( \sqrt[3]{125} \).</p>
+    <label><input type="radio" name="q7" value="a"> 25</label><br>
+    <label><input type="radio" name="q7" value="b"> 5</label><br>
+    <label><input type="radio" name="q7" value="c"> -5</label>
+    <div id="f7" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>8.</strong> Evaluate \( (-2)^3 \).</p>
+    <label><input type="radio" name="q8" value="a"> -8</label><br>
+    <label><input type="radio" name="q8" value="b"> 8</label><br>
+    <label><input type="radio" name="q8" value="c"> -6</label>
+    <div id="f8" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>9.</strong> Which number is a perfect cube?</p>
+    <label><input type="radio" name="q9" value="a"> 90</label><br>
+    <label><input type="radio" name="q9" value="b"> 64</label><br>
+    <label><input type="radio" name="q9" value="c"> 50</label>
+    <div id="f9" class="feedback"></div>
+  </div>
+
+  <div class="card question">
+    <p><strong>10.</strong> \(64 &lt; 70 &lt; 81\). Therefore \( \sqrt{70} \) is:</p>
+    <label><input type="radio" name="q10" value="a"> between 7 and 8</label><br>
+    <label><input type="radio" name="q10" value="b"> between 8 and 9</label><br>
+    <label><input type="radio" name="q10" value="c"> exactly 9</label>
+    <div id="f10" class="feedback"></div>
+  </div>
+
+  <button type="button" onclick="checkAnswers()">Check Answers</button>
+  <button type="button" onclick="resetQuiz()">Reset</button>
+
+</form>
+
+<div class="card">
+  <p>
+    <a href="lesson-01.html">← Back to Lesson 3.1</a> |
+    <a href="lesson-02.html">Back to Lesson 3.2</a> |
+    <a href="index.html">Back to Chapter 3</a>
+  </p>
+</div>
+
+<script>
+  const ANSWERS = {
+    q1: "b",
+    q2: "b",
+    q3: "b",
+    q4: "b",
+    q5: "b",
+    q6: "b",
+    q7: "b",
+    q8: "a",
+    q9: "b",
+    q10:"a"
+  };
+
+  function setFeedback(id, message, isCorrect) {
+    const f = document.getElementById(id);
+    f.textContent = message;
+    f.className = "feedback " + (isCorrect ? "correct" : "wrong");
+  }
+
+  function getSelectedValue(qname) {
+    const selected = document.querySelector(`input[name="${qname}"]:checked`);
+    return selected ? selected.value : null;
+  }
+
+  function checkAnswers() {
+    let score = 0;
+    const total = 10;
+
+    for (let i = 1; i <= 10; i++) {
+      const qname = `q${i}`;
+      const chosen = getSelectedValue(qname);
+
+      if (!chosen) {
+        setFeedback(`f${i}`, "Please select an answer.", false);
+        continue;
+      }
+
+      if (chosen === ANSWERS[qname]) {
+        setFeedback(`f${i}`, "Correct ✓", true);
+        score++;
+      } else {
+        setFeedback(`f${i}`, "Incorrect ✗", false);
+      }
+    }
+
+    // Show score
+    const scoreBox = document.getElementById("scoreBox");
+    const scoreText = document.getElementById("scoreText");
+    scoreBox.style.display = "block";
+    scoreText.textContent = `You scored ${score} / ${total}.`;
+
+    scoreBox.scrollIntoView({ behavior: "smooth" });
+
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
+    }
+  }
+
+  function resetQuiz() {
+    document.getElementById("quiz").reset();
+
+    for (let i = 1; i <= 10; i++) {
+      const f = document.getElementById(`f${i}`);
+      f.textContent = "";
+      f.className = "feedback";
+    }
+
+    const scoreBox = document.getElementById("scoreBox");
+    const scoreText = document.getElementById("scoreText");
+    scoreBox.style.display = "none";
+    scoreText.textContent = "";
+
+    document.querySelector("h1").scrollIntoView({ behavior: "smooth" });
+  }
+</script>
+
+</body>
+</html>
 
